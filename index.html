@@ -550,8 +550,10 @@
             <thead>
               <tr>
                 <th>Item Name</th><th>Category</th>
+                <th class="num">Baseline Price</th>
+                <th class="num">Base Year</th>
                 <th class="num">Current Price</th>
-                <th class="num">Inflation-Adj. Price</th>
+                <th class="num">Inflation-Adj. Target</th>
                 <th class="num">Gap</th>
                 <th class="num">2026 Forecast</th>
                 <th class="num">Annual Uplift</th>
@@ -975,65 +977,78 @@ let c1AllItems = [];
 let c1CurrentFilter = 'all';
 
 function buildC1() {
-  // ── Step 1: Find first transaction year per service from ServiceUsage ──
-  const firstTxnYear = {};
+  const TODAY_YEAR = 2025;
+
+  // ── Step 1: For each service, find the EARLIEST transaction and its
+  //    implied avg unit price (tot / qty). This is the true historical baseline.
+  //    Also track annual volume (all transactions, for uplift calc).
+  const svcBaseline = {}; // name → { basePrice, fromYear, totalQty }
   for (const row of serviceData) {
     const name = (row[8] || '').trim() || (row[2] || '').trim();
     const txn  = parseTxnDate(row[12]);
-    if (!name || !txn) continue;
-    if (!firstTxnYear[name] || txn.year < firstTxnYear[name]) {
-      firstTxnYear[name] = txn.year;
-    }
-  }
-
-  // ── Step 2: Build transaction volume map (annual qty per service) ──
-  const annualQty = {};
-  for (const row of serviceData) {
-    const name = (row[8] || '').trim() || (row[2] || '').trim();
     const qty  = parseFloat(row[4]) || 0;
-    if (!name) continue;
-    annualQty[name] = (annualQty[name] || 0) + qty;
+    const tot  = parseFloat(row[5]) || 0;
+    if (!name || !txn || qty <= 0 || tot <= 0) continue;
+    const avgUnit = tot / qty;
+    if (!svcBaseline[name]) {
+      svcBaseline[name] = { basePrice: avgUnit, fromYear: txn.year, totalQty: 0 };
+    } else if (txn.year < svcBaseline[name].fromYear ||
+               (txn.year === svcBaseline[name].fromYear && avgUnit < svcBaseline[name].basePrice)) {
+      // Use earliest year; within same year use the lower observed price as baseline
+      svcBaseline[name].basePrice = avgUnit;
+      svcBaseline[name].fromYear  = txn.year;
+    }
+    svcBaseline[name].totalQty += qty;
   }
 
-  // ── Step 3: Process catalog items ──
-  const TODAY_YEAR = 2025;
+  // ── Step 2: Process catalog items against their historical baseline ──
   const items = [];
 
   for (const row of catalogData) {
-    const status = (row[14] || '').trim();
-    const price  = parseFloat(row[10]) || 0;
-    if (status !== '1' || price <= 0) continue;
+    const status       = (row[14] || '').trim();
+    const catalogPrice = parseFloat(row[10]) || 0;
+    if (status !== '1' || catalogPrice <= 0) continue;
 
     const name     = (row[5] || '').trim() || (row[6] || '').trim();
     const catLabel = (row[1] || '').trim() || (row[0] || '').trim();
     if (!name) continue;
 
-    // Find first year this item was transacted (default to 2020 if unknown)
-    const fromYear = firstTxnYear[name] || 2021;
+    const baseline = svcBaseline[name];
+    if (!baseline || baseline.basePrice <= 0) continue;
 
-    // Compound inflation from first-seen year to today
-    const inflFactor   = compoundInflation(fromYear, TODAY_YEAR);
-    const baselinePrice = price / inflFactor; // what it would have been in fromYear
-    const inflAdjPrice  = parseFloat((price * (inflFactor < 1.001 ? inflFactor : inflFactor)).toFixed(2));
-    // Inflation-adjusted = what the price SHOULD be now (price compounded from baseline)
-    // If price == inflAdjPrice then they've kept up. If price < inflAdjPrice, they're behind.
-    const adjustedTarget = parseFloat((baselinePrice * inflFactor).toFixed(2));
-    const gap      = adjustedTarget - price;  // positive = they're behind inflation
-    const gapPct   = price > 0 ? gap / price : 0;
+    // Inflate the EARLIEST observed price forward to TODAY_YEAR
+    // This is what the price SHOULD be now if raised with inflation every year
+    const inflFactor     = compoundInflation(baseline.fromYear, TODAY_YEAR);
+    const adjustedTarget = parseFloat((baseline.basePrice * inflFactor).toFixed(2));
 
-    // 2026 forecast
+    // Gap: how far is the current catalog price from inflation-adjusted target?
+    const gap    = adjustedTarget - catalogPrice;  // positive = behind inflation
+    const gapPct = adjustedTarget > 0 ? gap / adjustedTarget : 0;
+
+    // 2026 forecast: one more year of inflation on top of adjustedTarget
     const forecast2026 = parseFloat((adjustedTarget * (1 + FORECAST_RATE_2026)).toFixed(2));
 
-    // Annual uplift if they adjust to inflation-adjusted price
-    const vol    = annualQty[name] || 0;
+    // Annual revenue uplift if catalog price adjusted to inflation target
+    const vol    = baseline.totalQty || 0;
     const uplift = gap > 0 ? gap * vol : 0;
 
-    // Status
-    const status_flag = gapPct > 0.15 ? 'urgent' : gapPct > 0.03 ? 'behind' : gapPct >= -0.02 ? 'current' : 'ahead';
+    // Status flags
+    const status_flag = gapPct > 0.15 ? 'urgent'
+                      : gapPct > 0.03 ? 'behind'
+                      : gapPct >= -0.02 ? 'current'
+                      : 'ahead';
 
     items.push({
-      name, catLabel, price, adjustedTarget, gap, gapPct,
-      forecast2026, vol, uplift, fromYear, inflFactor, status_flag
+      name, catLabel,
+      price: catalogPrice,
+      basePrice: baseline.basePrice,
+      fromYear: baseline.fromYear,
+      inflFactor,
+      adjustedTarget,
+      gap, gapPct,
+      forecast2026,
+      vol, uplift,
+      status_flag
     });
   }
 
@@ -1079,10 +1094,12 @@ function c1Render(filter) {
 
   document.getElementById('c1Table').innerHTML = items.slice(0, 150).map(it => {
     const gapColor = it.gap > 0 ? (it.gapPct > 0.15 ? '#ef4444' : '#ea580c') : '#16a34a';
-    const gapStr   = it.gap > 0 ? `+${fmt$(it.gap)}` : it.gap < -0.005 ? `-${fmt$(Math.abs(it.gap))}` : '—';
+    const gapStr   = it.gap > 0.005 ? `+${fmt$(it.gap)}` : it.gap < -0.005 ? `-${fmt$(Math.abs(it.gap))}` : '—';
     return `<tr class="c1-row" data-status="${it.status_flag}">
       <td>${escHtml(it.name)}</td>
       <td class="muted">${escHtml(it.catLabel)}</td>
+      <td class="num muted">${fmt$(it.basePrice)}</td>
+      <td class="num muted">${it.fromYear}</td>
       <td class="num">${fmt$(it.price)}</td>
       <td class="num blue">${fmt$(it.adjustedTarget)}</td>
       <td class="num" style="font-weight:700;color:${gapColor}">${gapStr}</td>
