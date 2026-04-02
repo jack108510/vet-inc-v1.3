@@ -1051,12 +1051,22 @@ function computeC1() {
     }
   }
 
+  // ── 2b. Build active item set from catalog (col[4]=invoiceitemid, col[14]=status) ──
+  const activeIds = new Set();
+  if (catalogData) {
+    for (const row of catalogData) {
+      if ((row[14] || '').trim() === '1') activeIds.add((row[4] || '').trim());
+    }
+  }
+
   // ── 3. Build report ──
   const ONE_YR_AGO_PRICE = new Date(TODAY); ONE_YR_AGO_PRICE.setFullYear(TODAY.getFullYear() - 1);
   const items = [];
 
   for (const [id, info] of Object.entries(priceMap)) {
-    // Only items not changed in the last year
+    // Active items only
+    if (activeIds.size > 0 && !activeIds.has(id)) continue;
+    // Only items not changed in the last year (stale = >1 year)
     if (info.lastMod >= ONE_YR_AGO_PRICE) continue;
 
     const fromYear   = info.lastMod.getFullYear();
@@ -1149,7 +1159,7 @@ function c1Render(filter) {
     const usageStr  = it.usage > 0
       ? fmtN(Math.round(it.usage))
       : '<span style="color:var(--muted)">—</span>';
-    const daysColor = it.daysSince > 1825 ? '#ef4444' : it.daysSince > 730 ? '#ea580c' : '#64748b';
+    const daysColor = it.daysSince > 730 ? '#ef4444' : it.daysSince > 365 ? '#ea580c' : '#64748b';
     return `<tr>
       <td>${escHtml(it.name || it.id)}</td>
       <td class="num" style="color:${daysColor};font-weight:600">${it.lastModStr}</td>
