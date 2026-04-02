@@ -922,7 +922,10 @@ async function loadDataAndBuild() {
  }
 }
 
-loadDataAndBuild().then(() => buildCampaigns()).catch(e => console.warn('Campaign init error:', e));
+loadDataAndBuild().then(() => {
+  document.getElementById('lastUpdated').textContent = 'Loading ' + (serviceData||[]).length.toLocaleString() + ' services… campaigns next';
+  return buildCampaigns();
+}).catch(e => console.warn('Campaign init error:', e));
 
 //
 // SECTION 1: Analytics & KPIs
@@ -1220,18 +1223,28 @@ async function campaignFetch(campaign) {
       if (!p.price || p.price <= 0) continue;
       const code = p.treatment_code;
       const name = treatMap[code] || code;
-      // updated_at now has real last-modified dates from PRICE.V2$ + billing history
+      // updated_at has real dates for ~1080 items, ETL insert date (2026-04-01) for the rest
       let lastModYear, daysSince, lastModStr;
       if (p.updated_at) {
         const d = new Date(p.updated_at);
         if (isNaN(d.getTime())) continue;
-        lastModYear = d.getFullYear();
-        daysSince = Math.round((today - d) / 86400000);
-        lastModStr = d.toISOString().slice(0, 10);
-        // Skip if updated this year
-        if (lastModYear >= currentYear) continue;
+        // Detect ETL insert dates (all within a few hours of each other on 2026-04-01)
+        const isETLDate = d.getFullYear() === 2026 && d.getMonth() === 3 && d.getDate() === 1 && d.getHours() < 12;
+        if (isETLDate) {
+          lastModStr = 'Unknown';
+          lastModYear = currentYear - 3; // conservative estimate for display
+          daysSince = Math.round(3 * 365.25);
+        } else if (d.getFullYear() >= currentYear) {
+          continue; // Real date this year = recently updated, skip
+        } else {
+          lastModYear = d.getFullYear();
+          daysSince = Math.round((today - d) / 86400000);
+          lastModStr = d.toISOString().slice(0, 10);
+        }
       } else {
-        continue; // No date — skip
+        lastModStr = 'Unknown';
+        lastModYear = currentYear - 3;
+        daysSince = Math.round(3 * 365.25);
       }
       const factor = compoundInflation(lastModYear, currentYear);
       const suggested = Math.round(p.price * factor * 100) / 100;
