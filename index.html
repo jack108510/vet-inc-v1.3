@@ -2275,8 +2275,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // WIDGET BOARD MODULE
 // ══════════════════════════════════════════════════════════════
 const WidgetBoard = (() => {
-  const SB_URL = 'https://rnqhhzatlxmyvccdvqkr.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucWhoemF0bHhteXZjY2R2cWtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTQ5ODUsImV4cCI6MjA5MDU5MDk4NX0.zokle21pVEPG5bIOFiyZIWYkYIwhkolWNOhJ7Cbub30';
   const CACHE_TTL = 5 * 60 * 1000;
   const STORAGE_KEY = 'rosslyn_widget_layout';
   const DEFAULT_LAYOUT = ['month-revenue','week-revenue','today-revenue','monthly-trend','revenue-by-category','top-services'];
@@ -2288,15 +2286,21 @@ const WidgetBoard = (() => {
   let csvReady = false;
   let isJiggleMode = false;
 
-  // ── Supabase helpers ────────────────────────────────────────
-  async function sbGet(table, params) {
-    const key = table + '?' + params;
+  // ── n8n webhook helpers ──────────────────────────────────────
+  const N8N_URL = window.location.hostname === 'localhost'
+    ? 'http://localhost:5678/webhook/widget-data'
+    : 'https://n8n.wildeautomations.com/webhook/widget-data';
+
+  async function wbGet(widget, params = {}) {
+    const key = widget + JSON.stringify(params);
     const now = Date.now();
     if (sbCache[key] && now - sbCache[key].ts < CACHE_TTL) return sbCache[key].data;
-    const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}`, {
-      headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, Accept: 'application/json' }
+    const res = await fetch(N8N_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ widget, ...params })
     });
-    if (!res.ok) throw new Error('SB ' + res.status);
+    if (!res.ok) throw new Error('n8n ' + res.status);
     const data = await res.json();
     sbCache[key] = { data, ts: now };
     return data;
@@ -2363,20 +2367,15 @@ const WidgetBoard = (() => {
 
     try {
       switch(id) {
-        case 'today-revenue': await renderRevenueKPI(id, bodyEl, 'Today\'s Revenue',
-          `select=amount&created_at=gte.${todayISO()}&created_at=lt.${tomorrowISO()}`); break;
-        case 'week-revenue': await renderRevenueKPI(id, bodyEl, 'Last 7 Days',
-          `select=amount&created_at=gte.${weekAgoISO()}&created_at=lt.${tomorrowISO()}`); break;
-        case 'month-revenue': await renderRevenueKPI(id, bodyEl, monthLabel(csvCurrentMonthKey()),
-          `select=amount&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`); break;
+        case 'today-revenue': await renderRevenueKPI(id, bodyEl, 'Today\'s Revenue'); break;
+        case 'week-revenue': await renderRevenueKPI(id, bodyEl, 'Last 7 Days'); break;
+        case 'month-revenue': await renderRevenueKPI(id, bodyEl, monthLabel(csvCurrentMonthKey())); break;
         case 'monthly-trend': await renderMonthlyTrend(id, bodyEl); break;
         case 'week-vs-last': await renderWeekVsLast(id, bodyEl); break;
         case 'avg-visit-value': await renderAvgVisitValue(id, bodyEl); break;
         case 'services-per-visit': await renderServicesPerVisit(id, bodyEl); break;
-        case 'visits-today': await renderVisitCount(id, bodyEl, 'Today',
-          `select=id&visit_date=eq.${todayISO()}`); break;
-        case 'visits-month': await renderVisitCount(id, bodyEl, monthLabel(csvCurrentMonthKey()),
-          `select=id&visit_date=gte.${monthStartISO()}&visit_date=lt.${nextMonthStartISO()}`); break;
+        case 'visits-today': await renderVisitCount(id, bodyEl, 'Today'); break;
+        case 'visits-month': await renderVisitCount(id, bodyEl, monthLabel(csvCurrentMonthKey())); break;
         case 'patients-per-doctor': await renderPatientsByDoctor(id, bodyEl); break;
         case 'doctor-revenue': await renderDoctorRevenue(id, bodyEl); break;
         case 'top-services': await renderTopServices(id, bodyEl); break;
@@ -2394,11 +2393,15 @@ const WidgetBoard = (() => {
     }
   }
 
-  async function renderRevenueKPI(id, bodyEl, sublabel, params) {
+  async function renderRevenueKPI(id, bodyEl, sublabel) {
     let total = 0;
     let fromCSV = false;
     try {
-      const rows = await sbGet('services', params);
+      let params = {};
+      if (id === 'today-revenue') params = { date: todayISO() };
+      else if (id === 'week-revenue') params = { from: weekAgoISO(), to: tomorrowISO() };
+      else if (id === 'month-revenue') params = { month_start: monthStartISO(), month_end: nextMonthStartISO() };
+      const rows = await wbGet(id, params);
       total = sumAmount(rows);
       if (total === 0 && rows.length === 0) throw new Error('empty');
     } catch(e) {
@@ -2424,7 +2427,7 @@ const WidgetBoard = (() => {
     try {
       // Get last 12 months of revenue from services
       const twelveMonthsAgo = (() => { const d = new Date(); d.setFullYear(d.getFullYear()-1); return d.toISOString().slice(0,10); })();
-      const rows = await sbGet('services', `select=amount,created_at&created_at=gte.${twelveMonthsAgo}&order=created_at.asc`);
+      const rows = await wbGet('monthly-trend', { from: twelveMonthsAgo });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byMo = {};
       for (const r of rows) {
@@ -2482,7 +2485,7 @@ const WidgetBoard = (() => {
     try {
       const twoWeeksAgo = new Date(thisMonday); twoWeeksAgo.setDate(twoWeeksAgo.getDate()-7);
       const twoWeeksAgoISO = twoWeeksAgo.toISOString().slice(0,10);
-      const rows = await sbGet('services', `select=amount,created_at&created_at=gte.${twoWeeksAgoISO}&created_at=lt.${tomorrowISO()}`);
+      const rows = await wbGet('week-vs-last', { from: twoWeeksAgoISO, to: tomorrowISO() });
       if (!rows || rows.length === 0) throw new Error('empty');
       for (const r of rows) {
         if (!r.created_at) continue;
@@ -2525,12 +2528,9 @@ const WidgetBoard = (() => {
   async function renderAvgVisitValue(id, bodyEl) {
     let rev = 0, visits = 0;
     try {
-      const [svcRows, visitRows] = await Promise.all([
-        sbGet('services', `select=amount&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`),
-        sbGet('visits', `select=id&visit_date=gte.${monthStartISO()}&visit_date=lt.${nextMonthStartISO()}`)
-      ]);
-      rev = sumAmount(svcRows);
-      visits = visitRows.length;
+      const result = await wbGet('avg-visit-value', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
+      rev = sumAmount(result.services || result);
+      visits = (result.visits || []).length;
       if (rev === 0 && visits === 0) throw new Error('empty');
     } catch(e) {
       const k = AI_monthKeys[AI_monthKeys.length-1]||'';
@@ -2544,12 +2544,9 @@ const WidgetBoard = (() => {
   async function renderServicesPerVisit(id, bodyEl) {
     let lines = 0, visits = 0;
     try {
-      const [svcRows, visitRows] = await Promise.all([
-        sbGet('services', `select=quantity&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`),
-        sbGet('visits', `select=id&visit_date=gte.${monthStartISO()}&visit_date=lt.${nextMonthStartISO()}`)
-      ]);
-      lines = svcRows.length;
-      visits = visitRows.length;
+      const result = await wbGet('services-per-visit', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
+      lines = (result.services || result).length;
+      visits = (result.visits || []).length;
       if (lines === 0 && visits === 0) throw new Error('empty');
     } catch(e) {
       const k = AI_monthKeys[AI_monthKeys.length-1]||'';
@@ -2560,10 +2557,13 @@ const WidgetBoard = (() => {
     bodyEl.innerHTML = `<div class="w-value">${avg}</div><div class="w-sub">service lines per visit this month</div>`;
   }
 
-  async function renderVisitCount(id, bodyEl, sublabel, params) {
+  async function renderVisitCount(id, bodyEl, sublabel) {
     let count = 0;
     try {
-      const rows = await sbGet('visits', params);
+      let params = {};
+      if (id === 'visits-today') params = { date: todayISO() };
+      else if (id === 'visits-month') params = { month_start: monthStartISO(), month_end: nextMonthStartISO() };
+      const rows = await wbGet(id, params);
       count = rows.length;
     } catch(e) {
       if (id === 'visits-month') {
@@ -2578,7 +2578,7 @@ const WidgetBoard = (() => {
     bodyEl.innerHTML = '<div class="w-chart sm"><canvas id="wc-patients-doctor"></canvas></div>';
     let labels = [], data = [];
     try {
-      const rows = await sbGet('visits', `select=doctor&visit_date=eq.${todayISO()}`);
+      const rows = await wbGet('patients-per-doctor', { date: todayISO() });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byDoc = {};
       for (const r of rows) { const d = r.doctor||'Unknown'; byDoc[d] = (byDoc[d]||0)+1; }
@@ -2604,9 +2604,9 @@ const WidgetBoard = (() => {
     bodyEl.innerHTML = '<div class="w-chart"><canvas id="wc-doctor-revenue"></canvas></div>';
     let labels = [], data = [];
     try {
-      // Join services with visits via client_id isn't straightforward in REST — use visits to get doctor grouping
-      const visitRows = await sbGet('visits', `select=id,doctor&visit_date=gte.${monthStartISO()}&visit_date=lt.${nextMonthStartISO()}`);
-      const svcRows = await sbGet('services', `select=amount,created_at&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`);
+      const result = await wbGet('doctor-revenue', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
+      const visitRows = result.visits || [];
+      const svcRows = result.services || [];
       if (!visitRows.length || !svcRows.length) throw new Error('empty');
       // Approximate: distribute revenue evenly by doctor visit counts
       const docCounts = {};
@@ -2638,7 +2638,7 @@ const WidgetBoard = (() => {
     bodyEl.innerHTML = '<div class="w-chart lg"><canvas id="wc-top-services"></canvas></div>';
     let labels = [], data = [];
     try {
-      const rows = await sbGet('services', `select=description,amount&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`);
+      const rows = await wbGet('top-services', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byDesc = {};
       for (const r of rows) { const d = r.description||'Unknown'; byDesc[d] = (byDesc[d]||0)+(parseFloat(r.amount)||0); }
@@ -2666,7 +2666,7 @@ const WidgetBoard = (() => {
     const CAT_NAMES = { AS:'Professional', AI:'Inventory', AM:'Medication', AT:'Other' };
     let labels = [], data = [];
     try {
-      const rows = await sbGet('services', `select=amount,service_type&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`);
+      const rows = await wbGet('revenue-by-category', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byCat = {};
       for (const r of rows) {
@@ -2702,7 +2702,7 @@ const WidgetBoard = (() => {
   async function renderNewClients(id, bodyEl) {
     let count = 0;
     try {
-      const rows = await sbGet('clients', `select=id&created_at=gte.${monthStartISO()}&created_at=lt.${nextMonthStartISO()}`);
+      const rows = await wbGet('new-clients', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
       count = rows.length;
     } catch(e) { count = 0; }
     bodyEl.innerHTML = `<div class="w-value">${count}</div><div class="w-sub">new clients registered this month</div>`;
@@ -2711,7 +2711,7 @@ const WidgetBoard = (() => {
   async function renderVaccinesMonth(id, bodyEl) {
     let count = 0;
     try {
-      const rows = await sbGet('vaccines', `select=id&admin_date=gte.${monthStartISO()}&admin_date=lt.${nextMonthStartISO()}`);
+      const rows = await wbGet('vaccines-month', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
       count = rows.length;
     } catch(e) { count = 0; }
     bodyEl.innerHTML = `<div class="w-value">${count}</div><div class="w-sub">vaccines administered this month</div>`;
@@ -2721,7 +2721,7 @@ const WidgetBoard = (() => {
     bodyEl.innerHTML = '<div class="w-chart"><canvas id="wc-vaccines-doctor"></canvas></div>';
     let labels = [], data = [];
     try {
-      const rows = await sbGet('vaccines', `select=doctor&admin_date=gte.${monthStartISO()}&admin_date=lt.${nextMonthStartISO()}`);
+      const rows = await wbGet('vaccines-by-doctor', { month_start: monthStartISO(), month_end: nextMonthStartISO() });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byDoc = {};
       for (const r of rows) { const d = r.doctor||'Unknown'; byDoc[d] = (byDoc[d]||0)+1; }
@@ -2745,7 +2745,7 @@ const WidgetBoard = (() => {
   async function renderAppointmentsToday(id, bodyEl) {
     let rows = [];
     try {
-      rows = await sbGet('appointments', `select=id,appt_time,doctor,status&appt_date=eq.${todayISO()}&order=appt_time.asc`);
+      rows = await wbGet('appointments-today', { date: todayISO() });
     } catch(e) { rows = []; }
     const count = rows.length;
     const listHtml = rows.slice(0,5).map(r =>
@@ -2759,7 +2759,7 @@ const WidgetBoard = (() => {
     let labels = [], data = [];
     try {
       const sevenDaysLater = new Date(); sevenDaysLater.setDate(sevenDaysLater.getDate()+7);
-      const rows = await sbGet('appointments', `select=appt_date&appt_date=gte.${todayISO()}&appt_date=lt.${sevenDaysLater.toISOString().slice(0,10)}&order=appt_date.asc`);
+      const rows = await wbGet('upcoming-appointments', { from: todayISO(), to: sevenDaysLater.toISOString().slice(0,10) });
       if (!rows || rows.length === 0) throw new Error('empty');
       const byDay = {};
       for (const r of rows) { if (r.appt_date) { byDay[r.appt_date] = (byDay[r.appt_date]||0)+1; } }
@@ -2783,11 +2783,10 @@ const WidgetBoard = (() => {
   async function renderPriceStaleness(id, bodyEl) {
     let items = [];
     try {
-      const [priceRows, treatRows, svcRows] = await Promise.all([
-        sbGet('prices', 'select=treatment_code,price,updated_at&order=updated_at.desc'),
-        sbGet('treatments', 'select=code,name'),
-        sbGet('services', 'select=code,quantity')
-      ]);
+      const result = await wbGet('price-staleness', {});
+      const priceRows = result.prices || [];
+      const treatRows = result.treatments || [];
+      const svcRows = result.services || [];
       if (!priceRows || priceRows.length === 0) throw new Error('empty');
 
       const treatNames = {};
@@ -2866,7 +2865,7 @@ const WidgetBoard = (() => {
     let projection = 0;
     try {
       const twelveMonthsAgo = (() => { const d = new Date(); d.setFullYear(d.getFullYear()-1); return d.toISOString().slice(0,10); })();
-      const rows = await sbGet('services', `select=amount,created_at,service_type&created_at=gte.${twelveMonthsAgo}&service_type=in.(AI,AM)`);
+      const rows = await wbGet('inventory-projection', { from: twelveMonthsAgo });
       if (!rows || rows.length === 0) throw new Error('empty');
       const now = new Date();
       const threeMonthsAgo = new Date(now); threeMonthsAgo.setMonth(now.getMonth()-3);
