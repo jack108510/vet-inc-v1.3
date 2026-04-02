@@ -1047,29 +1047,83 @@ function sendQuickAction(text) {
  sendAIMessage();
 }
 
+const AI_WEBHOOK = 'https://n8n.wildeautomations.com/webhook/rosslyn-clinic-assistant';
+
 function sendAIMessage() {
- if (aiTyping) return;
- const input = document.getElementById('aiInput');
- const query = input.value.trim();
- if (!query) return;
- input.value = '';
+  if (aiTyping) return;
+  const input = document.getElementById('aiInput');
+  const query = input.value.trim();
+  if (!query) return;
+  input.value = '';
 
- const matchedIntent = matchIntent(query);
- addToHistory('user', query, matchedIntent?.name);
- appendMessage('user', escHtml(query));
+  addToHistory('user', query, null);
+  appendMessage('user', escHtml(query));
 
- const typingId = appendTyping();
- aiTyping = true;
- document.getElementById('aiSendBtn').disabled = true;
+  const typingId = appendTyping();
+  aiTyping = true;
+  document.getElementById('aiSendBtn').disabled = true;
 
- setTimeout(() => {
-   removeTyping(typingId);
-   const response = processAIQuery(query, matchedIntent);
-   addToHistory('ai', response, null);
-   appendMessage('ai', response);
-   aiTyping = false;
-   document.getElementById('aiSendBtn').disabled = false;
- }, 600 + Math.random() * 300);
+  fetch(AI_WEBHOOK, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: query })
+  })
+  .then(r => r.json())
+  .then(data => {
+    removeTyping(typingId);
+    const answer = data.answer || data.text || data.message || 'No response received.';
+    // Convert markdown-ish to HTML
+    const html = markdownToHtml(answer);
+    addToHistory('ai', html, null);
+    appendMessage('ai', html);
+  })
+  .catch(err => {
+    removeTyping(typingId);
+    // Fallback to local engine if webhook fails
+    const matchedIntent = matchIntent(query);
+    const response = processAIQuery(query, matchedIntent);
+    addToHistory('ai', response, null);
+    appendMessage('ai', response);
+  })
+  .finally(() => {
+    aiTyping = false;
+    document.getElementById('aiSendBtn').disabled = false;
+  });
+}
+
+function markdownToHtml(text) {
+  if (!text) return '';
+  return text
+    // Code blocks
+    .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre style="background:#f8faff;border:1px solid var(--border);padding:10px 14px;border-radius:8px;font-size:0.8rem;overflow-x:auto;margin:0.5rem 0"><code>$1</code></pre>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Tables (basic — | col | col |)
+    .replace(/(\|.+\|\n)+/g, m => {
+      const rows = m.trim().split('\n');
+      let html = '<table style="margin:0.6rem 0">';
+      rows.forEach((row, i) => {
+        if (row.match(/^\|[-| ]+\|$/)) return; // separator row
+        const cells = row.split('|').filter(c => c.trim() !== '');
+        const tag = i === 0 ? 'th' : 'td';
+        html += '<tr>' + cells.map(c => `<${tag}>${escHtml(c.trim())}</${tag}>`).join('') + '</tr>';
+      });
+      return html + '</table>';
+    })
+    // Headers
+    .replace(/^### (.+)$/gm, '<strong style="font-size:0.95rem">$1</strong>')
+    .replace(/^## (.+)$/gm, '<strong style="font-size:1rem">$1</strong>')
+    .replace(/^# (.+)$/gm, '<strong style="font-size:1.05rem">$1</strong>')
+    // Unordered lists
+    .replace(/^[-*] (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul style="padding-left:1.2rem;margin:0.4rem 0">${m}</ul>`)
+    // Ordered lists
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    // Newlines to paragraphs
+    .replace(/\n\n+/g, '</p><p style="margin-bottom:0.5rem">')
+    .replace(/\n/g, '<br>');
 }
 
 function appendMessage(role, html) {
