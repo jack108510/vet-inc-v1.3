@@ -986,8 +986,7 @@ Object.assign(CPI_RATES, {
   2014: 0.020, 2015: 0.013, 2016: 0.014,
   2017: 0.016, 2018: 0.022, 2019: 0.034,
   2020: 0.021, 2021: 0.041, 2022: 0.068,
-  2023: 0.058, 2024: 0.052, 2025: 0.043,
-  2026: 0.022  // BoC forecast
+  2023: 0.058, 2024: 0.052  // through end of 2024 — no forecast rates used
 });
 
 let priceHistoryData = null;
@@ -1059,7 +1058,7 @@ function computeC1() {
     if (!usageMap[id] || usageMap[id] <= 0) continue;
 
     const fromYear   = info.lastMod.getFullYear();
-    const factor     = compoundInflation(fromYear, 2026);  // compound to 2026
+    const factor     = compoundInflation(fromYear, 2025);  // actual CPI only, no forecast
     const suggested  = parseFloat((info.price * factor).toFixed(2));
     const delta      = parseFloat((suggested - info.price).toFixed(2));
     if (delta <= 0.005) continue;
@@ -1113,9 +1112,9 @@ function computeC1() {
       <div class="stat-bar-sub">since last price change</div>
     </div>
     <div class="stat-bar-item">
-      <div class="stat-bar-label">2026 Projected Uplift</div>
-      <div class="stat-bar-value" style="color:var(--purple)">${fmt$(usageUplift * (1 + (CPI_RATES[2026]||0.022)))}</div>
-      <div class="stat-bar-sub">with one more CPI year</div>
+      <div class="stat-bar-label">Avg Days Stale</div>
+      <div class="stat-bar-value" style="color:var(--purple)">${items.length ? fmtN(Math.round(items.reduce((s,i)=>s+i.daysSince,0)/items.length)) : 0}</div>
+      <div class="stat-bar-sub">avg since last price change</div>
     </div>
   `;
 
