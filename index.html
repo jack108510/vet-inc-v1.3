@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Clinic IQ — Business Dashboard</title><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><title>Rosslyn Vet — Business Dashboard</title><script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><style>
  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
  :root {
@@ -410,7 +410,7 @@
  .tab-nav { padding: 0 1rem; overflow-x: auto; }
  .header-divider, .clinic-name { display: none; }
  }
- </style></head><body><!-- HEADER --><header class="header"><div class="header-left"><div class="logo-wrap"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="logo-text">Clinic<span>IQ</span></div></div><div class="header-divider"></div><div class="clinic-name" id="clinicName">Tudor Glen Veterinary Hospital</div></div><div class="header-right"><span class="last-updated" id="lastUpdated">Loading data…</span><button class="btn-upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+ </style></head><body><!-- HEADER --><header class="header"><div class="header-left"><div class="logo-wrap"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="logo-text">Clinic<span>IQ</span></div></div><div class="header-divider"></div><div class="clinic-name" id="clinicName">Rosslyn Veterinary Clinic</div></div><div class="header-right"><span class="last-updated" id="lastUpdated">Loading data…</span><button class="btn-upload"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
  Upload Data
  </button></div></header><!-- TAB NAV --><nav class="tab-nav"><button class="tab-btn active" onclick="showTab('analytics', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg></span> Analytics &amp; KPIs
  </button><button class="tab-btn" onclick="showTab('campaigns', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Campaigns
@@ -435,7 +435,7 @@
  </button><button class="quick-action" onclick="sendQuickAction('Which services have declining revenue?')"><span class="qa-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span> Declining services
  </button><button class="quick-action" onclick="sendQuickAction('Show me dental department performance')"><span class="qa-icon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span> Dental performance
  </button><div class="ai-sidebar-sep"></div><div class="ai-sidebar-title">Data Status</div><div class="ai-data-status"><div><span class="ai-data-dot" id="dotService"></span> Service Usage CSV</div><div style="margin-top:6px"><span class="ai-data-dot" id="dotCatalog"></span> Item Catalog CSV</div></div></aside><!-- Chat --><div class="ai-main"><div class="ai-messages" id="aiMessages"><!-- Welcome message --><div class="msg-row"><div class="msg-avatar ai">IQ</div><div class="msg-bubble ai"><strong>Hi, I'm your Clinic IQ Assistant.</strong><br><br>
- I have full access to Tudor Glen's service history, pricing catalog, revenue trends, and transaction data. Ask me anything — I'll give you real numbers from your actual data.<br><br><span style="color:#64748b;font-size:0.82rem">Try: <em>"How did we do last month?"</em> · <em>"What's driving dental revenue?"</em> · <em>"Which services are growing?"</em> · <em>"Build me an invoice for a wellness visit"</em></span></div></div></div><div class="ai-input-bar"><input class="ai-input" id="aiInput" type="text" placeholder="Ask about your clinic data…" onkeydown="if(event.key==='Enter') sendAIMessage()" /><button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+ I have full access to Rosslyn's service history, pricing catalog, revenue trends, and transaction data. Ask me anything — I'll give you real numbers from your actual data.<br><br><span style="color:#64748b;font-size:0.82rem">Try: <em>"How did we do last month?"</em> · <em>"What's driving dental revenue?"</em> · <em>"Which services are growing?"</em> · <em>"Build me an invoice for a wellness visit"</em></span></div></div></div><div class="ai-input-bar"><input class="ai-input" id="aiInput" type="text" placeholder="Ask about your clinic data…" onkeydown="if(event.key==='Enter') sendAIMessage()" /><button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
  Send
  </button></div></div></section><script>
 // 
@@ -1545,7 +1545,7 @@ function processAIQuery(query) {
  if (q.match(/\b(total revenue|how much|revenue overall|make|earn|gross)\b/)) {
  if (!AI_totalRevenue) return "Revenue data isn't loaded yet.";
  const avg = AI_totalRevenue / AI_monthKeys.length;
- return `Tudor Glen generated <strong style="color:#2563eb;font-size:1.1rem">${fmt$(AI_totalRevenue)}</strong> total revenue across <strong>${AI_monthKeys.length} months</strong> of data.<br><br>Average monthly revenue: <strong>${fmt$(avg)}</strong>`;
+ return `Rosslyn generated <strong style="color:#2563eb;font-size:1.1rem">${fmt$(AI_totalRevenue)}</strong> total revenue across <strong>${AI_monthKeys.length} months</strong> of data.<br><br>Average monthly revenue: <strong>${fmt$(avg)}</strong>`;
  }
 
  // MARGIN / PRICING ANALYSIS 
@@ -1744,7 +1744,7 @@ function processAIQuery(query) {
  const tax = subtotal * 0.05; // GST
  const total = subtotal + tax;
 
- let html = `<strong> Sample Invoice — ${serviceHint.charAt(0).toUpperCase()+serviceHint.slice(1)} Visit</strong><br><span style="color:#64748b;font-size:0.8rem">Tudor Glen Veterinary Hospital · Generated from catalog pricing</span><br><br>`;
+ let html = `<strong> Sample Invoice — ${serviceHint.charAt(0).toUpperCase()+serviceHint.slice(1)} Visit</strong><br><span style="color:#64748b;font-size:0.8rem">Rosslyn Veterinary Clinic · Generated from catalog pricing</span><br><br>`;
  html += tbl(
  ['Service / Item', 'Qty', 'Unit Price', 'Total'],
  selected.map(i => [escHtml(i.name), '1', fmt$(i.price), blueVal(fmt$(i.price))]),
