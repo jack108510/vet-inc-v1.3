@@ -1167,80 +1167,98 @@ const AI_WEBHOOK = 'https://n8n.wildeautomations.com/webhook/rosslyn-clinic-assi
 const CAMPAIGN_WEBHOOK = window.location.hostname === 'localhost'
   ? 'http://localhost:5678/webhook/campaign-data'
   : 'https://n8n.wildeautomations.com/webhook/campaign-data';
+let priceDetailData = null;
+
+async function loadPriceDetails() {
+  if (priceDetailData) return priceDetailData;
+  try {
+    const res = await fetch('prices.json');
+    if (!res.ok) throw new Error('prices.json ' + res.status);
+    priceDetailData = await res.json();
+  } catch(e) {
+    console.warn('prices.json not found, using basic price data');
+    priceDetailData = (pricesData||[]).map(p => ({
+      code: p.treatment_code, name: p.treatment_code,
+      price: p.price, last_modified: null, annual_count: 0, annual_revenue: 0
+    }));
+  }
+  return priceDetailData;
+}
+
 async function campaignFetch(campaign) {
   const now = Date.now();
   if (campaignCache[campaign] && now - campaignCache[campaign].ts < CAMPAIGN_TTL) {
     return campaignCache[campaign].data;
   }
-  // Compute locally from already-loaded Supabase data
-  let data = { items: [] };
-  const treatMap = {};
-  (treatmentsData||[]).forEach(t => { treatMap[t.code] = t.name; });
-  const usageMap = {};
-  (serviceData||[]).forEach(r => { if(r.code) usageMap[r.code] = (usageMap[r.code]||0) + (parseFloat(r.quantity)||1); });
+  const prices = await loadPriceDetails();
   const currentYear = new Date().getFullYear();
+  const today = new Date();
+  let data = { items: [] };
 
   if (campaign === 'inflation') {
     const items = [];
-    for (const p of (pricesData||[])) {
+    for (const p of prices) {
       if (!p.price || p.price <= 0) continue;
-      const code = p.treatment_code;
-      const name = treatMap[code] || code;
-      // Assume 3 years stale since updated_at is ETL insert date
-      const assumedYear = currentYear - 3;
-      const factor = compoundInflation(assumedYear, currentYear);
+      let lastModYear;
+      let daysSince;
+      let lastModStr;
+      if (p.last_modified) {
+        const d = new Date(p.last_modified);
+        lastModYear = d.getFullYear();
+        daysSince = Math.round((today - d) / 86400000);
+        lastModStr = p.last_modified;
+      } else {
+        lastModYear = currentYear - 4;
+        daysSince = Math.round(4 * 365.25);
+        lastModStr = 'Unknown';
+      }
+      if (lastModYear >= currentYear) continue;
+      const factor = compoundInflation(lastModYear, currentYear);
       const suggested = Math.round(p.price * factor * 100) / 100;
       const delta = Math.max(0, suggested - p.price);
       if (delta < 0.01) continue;
-      const daysSince = Math.round((currentYear - assumedYear) * 365.25);
-      const usage = usageMap[code] || 0;
-      const monthlyUsage = usage / 60; // ~60 months of data
-      const annualUplift = delta * monthlyUsage * 12;
+      const annualUsage = p.annual_count || 0;
+      const annualUplift = delta * annualUsage;
       items.push({
-        id: code, name, currentPrice: p.price, suggested,
-        delta, daysSince, lastModStr: 'Unknown',
+        id: p.code, name: p.name, currentPrice: p.price, suggested,
+        delta, daysSince, lastModStr,
         inflPct: ((factor - 1) * 100).toFixed(1),
-        usage: monthlyUsage * 12, uplift: annualUplift
+        usage: annualUsage, uplift: annualUplift
       });
     }
     items.sort((a,b) => b.uplift - a.uplift);
     data = { items };
   } else if (campaign === '99-pricing') {
     const items = [];
-    for (const p of (pricesData||[])) {
-      if (!p.price || p.price <= 0 || p.price < 2) continue;
+    for (const p of prices) {
+      if (!p.price || p.price < 2) continue;
       const cents = Math.round(p.price * 100) % 100;
       if (cents === 99 || cents === 95) continue;
-      const code = p.treatment_code;
-      const name = treatMap[code] || code;
       const whole = Math.floor(p.price);
       const price99 = whole + 0.99;
-      const gain = price99 > p.price ? price99 - p.price : (whole + 1) + 0.99 - p.price;
+      const gain = price99 > p.price ? price99 - p.price : (whole + 1 + 0.99) - p.price;
       if (gain <= 0 || gain > 1.5) continue;
-      const usage = usageMap[code] || 0;
-      const monthlyVol = usage / 60;
-      const annualUplift = gain * monthlyVol * 12;
+      const annualUsage = p.annual_count || 0;
+      if (annualUsage < 1) continue;
+      const annualUplift = gain * annualUsage;
       items.push({
-        service: name, category: '', currentPrice: p.price,
+        service: p.name, category: '', currentPrice: p.price,
         '99Price': price99 > p.price ? price99 : whole + 1.99,
-        gainPerTxn: gain, volume: monthlyVol * 12, uplift: annualUplift
+        gainPerTxn: gain, volume: annualUsage, uplift: annualUplift
       });
     }
     items.sort((a,b) => b.uplift - a.uplift);
     data = { items };
   } else if (campaign === 'micro-margin') {
     const items = [];
-    for (const p of (pricesData||[])) {
+    for (const p of prices) {
       if (!p.price || p.price <= 0) continue;
-      const code = p.treatment_code;
-      const name = treatMap[code] || code;
-      const usage = usageMap[code] || 0;
-      const annualQty = usage / 60 * 12;
+      const annualQty = p.annual_count || 0;
       if (annualQty < 5) continue;
       const bump = p.price * 0.05;
       const priceWithBump = Math.round((p.price + bump) * 100) / 100;
       items.push({
-        name, oldCost: p.price, newCost: p.price,
+        name: p.name, oldCost: p.price, newCost: p.price,
         costIncrease: 0, priceWithBump,
         annualQty, annualUplift: bump * annualQty
       });
