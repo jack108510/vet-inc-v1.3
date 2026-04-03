@@ -3368,15 +3368,20 @@ const ClinicSettings = (() => {
       const res = await fetch(SB_URL + '/rest/v1/clinic_settings?clinic_id=eq.' + CLINIC_ID + '&limit=1', {
         headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, Accept: 'application/json' }
       });
-      if (!res.ok) throw new Error('SB ' + res.status);
-      const rows = await res.json();
-      if (rows.length) {
-        const row = rows[0];
-        if (row.fixed_costs && row.fixed_costs.length) fixedCosts = row.fixed_costs;
-        if (row.utility_costs && row.utility_costs.length) utilityCosts = row.utility_costs;
+      if (res.status === 404) {
+        console.log('⚠️ clinic_settings table not found (ok for now), using defaults');
+      } else if (!res.ok) {
+        throw new Error('SB ' + res.status);
+      } else {
+        const rows = await res.json();
+        if (rows.length) {
+          const row = rows[0];
+          if (row.fixed_costs && row.fixed_costs.length) fixedCosts = row.fixed_costs;
+          if (row.utility_costs && row.utility_costs.length) utilityCosts = row.utility_costs;
+        }
       }
     } catch (e) {
-      console.warn('Settings load error:', e);
+      console.warn('Settings load error (non-critical):', e);
     }
     loaded = true;
     renderList('fixed');
@@ -3422,7 +3427,7 @@ const ClinicSettings = (() => {
   function init() {
     if (!loadStarted) {
       loadStarted = true;
-      loadFromSupabase();
+      loadFromSupabase().catch(e => console.warn('Settings init error (non-critical):', e));
     } else if (loaded) {
       renderList('fixed');
       renderList('utility');
