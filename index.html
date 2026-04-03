@@ -898,6 +898,7 @@ let serviceData = null;
 let pricesData = null;
 let treatmentsData = null;
  let accountsData = null;
+let microMarginData = null;
 let analyticsReady = false;
 let campaignsReady = false;
 const campaignCache = {};
@@ -930,10 +931,15 @@ async function loadDataAndBuild() {
    const acctRows = await sbFetch('accounts', 'select=txn_date,amount_raw,type_flag&order=txn_date.asc');
    console.log('✅ Got', acctRows.length, 'accounts');
    
+   console.log('📥 Fetching micro margin data...');
+   const mmRows = await sbFetch('micro_margin_agg', 'select=code,price,price_changed,sales_since_change,potential_uplift');
+   console.log('✅ Got', mmRows.length, 'micro margin items');
+   
    serviceData = svcRows;
    pricesData = priceRows;
    treatmentsData = treatRows;
    accountsData = acctRows;
+   microMarginData = mmRows;
    
    console.log('📊 DATA LOADED:');
    console.log('  serviceData:', serviceData.length, 'rows');
@@ -1372,23 +1378,35 @@ async function campaignFetch(campaign) {
     items.sort((a,b) => b.uplift - a.uplift);
     data = { items };
   } else if (campaign === 'micro-margin') {
+    // Micro margin: items with price changes in last 365 days
+    // Count sales SINCE the price change, calculate 5% markup on new price
     const items = [];
+    const now = new Date();
+    const oneYearAgo = new Date(now - 365 * 86400000);
     for (const p of (pricesData||[])) {
       if (!p.price || p.price <= 0) continue;
+      const d = new Date(p.updated_at);
+      // Only items changed in last 365 days (exclude ETL date)
+      if (d < oneYearAgo) continue;
+      if (d.getFullYear() === 2026 && d.getMonth() === 3 && d.getDate() === 1) continue;
       const code = p.treatment_code;
       const name = treatMap[code] || code;
-      const u = usageMap[code] || { count: 0 };
-      if (u.count < 5) continue;
+      // Use micro_margin_agg data if loaded, otherwise estimate from usage
+      const mmData = (microMarginData||[]).find(m => m.code === code);
+      const salesSince = mmData ? mmData.sales_since_change : 0;
+      if (salesSince < 1) continue;
       const bump = p.price * 0.05;
       const priceWithBump = Math.round((p.price + bump) * 100) / 100;
+      const uplift = bump * salesSince;
       items.push({
         name, oldCost: p.price, newCost: p.price,
         costIncrease: 0, priceWithBump,
-        annualQty: u.count, annualUplift: bump * u.count
+        priceChanged: d.toISOString().slice(0,10),
+        annualQty: salesSince, annualUplift: parseFloat(uplift.toFixed(2))
       });
     }
     items.sort((a,b) => b.annualUplift - a.annualUplift);
-    data = { items: items.slice(0, 100) };
+    data = { items };
   }
   campaignCache[campaign] = { data, ts: now };
   return data;
