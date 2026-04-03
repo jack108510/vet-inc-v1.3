@@ -1345,24 +1345,28 @@ async function campaignFetch(campaign) {
     items.sort((a,b) => b.uplift - a.uplift);
     data = { items };
   } else if (campaign === '99-pricing') {
+    // .99 pricing: for each service code, look at average transaction price
+    // If it doesn't end in .99, calculate what each txn would gain if rounded up to .99
     const items = [];
-    for (const p of (pricesData||[])) {
-      if (!p.price || p.price < 2) continue;
-      const cents = Math.round(p.price * 100) % 100;
-      if (cents === 99 || cents === 95) continue;
-      const code = p.treatment_code;
+    for (const r of (serviceData||[])) {
+      if (!r.code) continue;
+      const avgPrice = r.total_amount / (r.txn_count || 1);
+      if (avgPrice < 2) continue;
+      const cents = Math.round(avgPrice * 100) % 100;
+      if (cents === 99 || cents === 95) continue; // already .99 or .95
+      const code = r.code;
       const name = treatMap[code] || code;
-      const whole = Math.floor(p.price);
+      const whole = Math.floor(avgPrice);
       const price99 = whole + 0.99;
-      const gain = price99 > p.price ? price99 - p.price : (whole + 1 + 0.99) - p.price;
+      const gain = price99 > avgPrice ? price99 - avgPrice : (whole + 1 + 0.99) - avgPrice;
       if (gain <= 0 || gain > 1.5) continue;
-      const u = usageMap[code] || { count: 0 };
-      if (u.count < 1) continue;
-      const annualUplift = gain * u.count;
+      const volume = r.txn_count || 0;
+      if (volume < 1) continue;
+      const annualUplift = gain * volume;
       items.push({
-        service: name, category: '', currentPrice: p.price,
-        '99Price': price99 > p.price ? price99 : whole + 1.99,
-        gainPerTxn: gain, volume: u.count, uplift: annualUplift
+        service: name, category: r.service_type || '', currentPrice: parseFloat(avgPrice.toFixed(2)),
+        '99Price': price99 > avgPrice ? price99 : whole + 1.99,
+        gainPerTxn: parseFloat(gain.toFixed(2)), volume, uplift: parseFloat(annualUplift.toFixed(2))
       });
     }
     items.sort((a,b) => b.uplift - a.uplift);
