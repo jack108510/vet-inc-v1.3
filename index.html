@@ -863,20 +863,30 @@ async function sbFetch(table, params) {
 async function sbFetchAll(table, params) {
  const headers = { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, Accept: 'application/json', Prefer: 'count=exact' };
  let all = [], from = 0, total = Infinity;
- while (from < total) {
+ const MAX_ROWS = 50000; // Limit to 50K rows to avoid Supabase pagination issues
+ while (from < total && all.length < MAX_ROWS) {
    const to = from + 999;
-   const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}&offset=${from}&limit=1000`, {
-     headers
-   });
-   if (!res.ok) throw new Error('SB ' + res.status + ' on ' + table);
-   const cr = res.headers.get('content-range');
-   if (cr) { const m = cr.match(/\/(\d+)/); if (m) total = parseInt(m[1]); }
-   const rows = await res.json();
-   console.log('Fetched', table, 'offset', from, '→', rows.length, 'rows, total:', total);
-   if (!rows || rows.length === 0) break;
-   all = all.concat(rows);
-   from += rows.length;
-   if (rows.length < 1000) break;
+   try {
+     const res = await fetch(`${SB_URL}/rest/v1/${table}?${params}&offset=${from}&limit=1000`, {
+       headers
+     });
+     if (res.status === 500) {
+       console.warn(`⚠️ SB 500 at offset ${from}, stopping pagination (got ${all.length} rows)`);
+       break;
+     }
+     if (!res.ok) throw new Error('SB ' + res.status + ' on ' + table);
+     const cr = res.headers.get('content-range');
+     if (cr) { const m = cr.match(/\/(\d+)/); if (m) total = parseInt(m[1]); }
+     const rows = await res.json();
+     console.log('Fetched', table, 'offset', from, '→', rows.length, 'rows, total:', total);
+     if (!rows || rows.length === 0) break;
+     all = all.concat(rows);
+     from += rows.length;
+     if (rows.length < 1000) break;
+   } catch(e) {
+     console.warn(`⚠️ Error fetching ${table} at offset ${from}:`, e.message, '(continuing with', all.length, 'rows)');
+     break;
+   }
  }
  return all;
 }
