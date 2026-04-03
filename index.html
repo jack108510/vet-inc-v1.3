@@ -1339,7 +1339,8 @@ async function campaignFetch(campaign) {
       const delta = Math.max(0, suggested - p.price);
       if (delta < 0.01) continue;
       const u = usageMap[code] || { count: 0 };
-      const annualUsage = u.count; // from loaded services
+      const annualUsage = u.count;
+      if (annualUsage < 1) continue; // only active items (sold in last 365 days)
       const annualUplift = delta * annualUsage;
       items.push({
         id: code, name, currentPrice: p.price, suggested,
