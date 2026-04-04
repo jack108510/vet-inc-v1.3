@@ -767,6 +767,68 @@
   opacity: 0; transition: opacity 0.4s;
 }
 .settings-save-indicator.visible { opacity: 1; }
+
+/* ── Insights / Profit Calculator ─────────────────────── */
+.insights-wrap { padding: 1.5rem 1.5rem 2rem; max-width: 1100px; margin: 0 auto; }
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+@media (max-width: 768px) { .insights-grid { grid-template-columns: 1fr; } }
+.insights-cost-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; border-bottom: 1px solid rgba(219,234,254,0.6);
+  font-size: 0.88rem;
+}
+.insights-cost-row:last-child { border-bottom: none; }
+.insights-cost-label { color: var(--text); }
+.insights-cost-amount { color: var(--muted); font-weight: 600; }
+.insights-section-heading {
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted); margin: 1rem 0 0.5rem;
+}
+.insights-section-heading:first-child { margin-top: 0; }
+.insights-derived-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;
+}
+.insights-derived-stat {
+  background: var(--surface2); border-radius: 12px; padding: 0.75rem 1rem;
+}
+.insights-derived-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 4px; }
+.insights-derived-value { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.insights-stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.65rem 0; border-bottom: 1px solid rgba(219,234,254,0.5);
+}
+.insights-stat-row:last-child { border-bottom: none; }
+.insights-stat-label { font-size: 0.88rem; color: var(--muted); }
+.insights-stat-value { font-size: 1rem; font-weight: 800; color: var(--text); }
+.insights-metric-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem;
+}
+.insights-metric-grid-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;
+}
+@media (max-width: 600px) {
+  .insights-metric-grid { grid-template-columns: 1fr 1fr; }
+  .insights-metric-grid-2 { grid-template-columns: 1fr; }
+}
+.insights-metric {
+  background: var(--surface2); border-radius: 14px; padding: 0.85rem 1rem;
+  text-align: center;
+}
+.insights-metric-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+.insights-metric-value { font-size: 1.15rem; font-weight: 900; color: var(--text); }
+.insights-verdict {
+  text-align: center; padding: 1rem 1.5rem; border-radius: 14px;
+  font-weight: 800; font-size: 1.05rem;
+}
+.insights-verdict.profitable { background: rgba(22,163,74,0.1); color: var(--green); }
+.insights-verdict.loss { background: rgba(239,68,68,0.1); color: var(--red); }
+.insights-breakdown-table th, .insights-breakdown-table td {
+  padding: 9px 12px; font-size: 0.84rem;
+}
 </style></head><body><!-- HEADER --><header class="header"><div class="header-left"><div class="logo-wrap"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="logo-text">Vet <span>INC</span></div></div><div class="header-divider"></div><div class="clinic-name" id="clinicName">Rosslyn Veterinary Clinic</div></div><div class="header-right"><span class="last-updated" id="lastUpdated">Loading data…</span><span class="btn-upload" style="cursor:default;pointer-events:none;opacity:0.75">● Live</span></div></header><!-- TAB NAV --><nav class="tab-nav"><button class="tab-btn active" onclick="showTab('analytics', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg></span> 🥇 Key Indicators
  </button><button class="tab-btn" onclick="showTab('campaigns', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> 💵 Pricing Intelligence
  </button><button class="tab-btn" onclick="showTab('inventory', this)">📦 Inventory Intelligence
@@ -782,7 +844,60 @@
  SECTION 3: Inventory Intelligence (Coming Soon)
  --><section id="tab-inventory" class="section"><div style="min-height:60vh;display:flex;align-items:center;justify-content:center;background:#eff6ff"><div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(37,99,235,0.08);padding:3rem 4rem;text-align:center;max-width:480px"><div style="font-size:3.5rem;margin-bottom:1rem">📦</div><div style="font-size:1.5rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">Inventory Intelligence</div><div style="font-size:1rem;color:#94a3b8">This module is coming soon.</div></div></div></section><!--
  SECTION 4: Insights & Actions (Coming Soon)
- --><section id="tab-insights" class="section"><div style="min-height:60vh;display:flex;align-items:center;justify-content:center;background:#eff6ff"><div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(37,99,235,0.08);padding:3rem 4rem;text-align:center;max-width:480px"><div style="font-size:3.5rem;margin-bottom:1rem">📈</div><div style="font-size:1.5rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">Insights &amp; Actions</div><div style="font-size:1rem;color:#94a3b8">This module is coming soon.</div></div></div></section><!--
+ --><section id="tab-insights" class="section"><div class="insights-wrap">
+<div class="settings-page-header"><div><div class="settings-page-title">Profit Calculator</div><div class="settings-page-sub">Live profitability based on your cost structure and last 30 days revenue</div></div></div>
+<div class="insights-grid">
+<!-- Costs Panel -->
+<div class="settings-card">
+  <div class="settings-card-title">Monthly Cost Structure</div>
+  <div class="settings-card-subtitle">From Settings — edit there to update</div>
+  <div class="insights-section-heading">Fixed Costs</div>
+  <div id="insightsFixedList"></div>
+  <div class="insights-section-heading" style="margin-top:1rem">Utility Costs</div>
+  <div id="insightsUtilityList"></div>
+  <div class="settings-total-row"><span class="settings-total-label">Total Monthly</span><span class="settings-total-amount" id="insightsTotalMonthly">$0.00</span></div>
+  <div class="insights-derived-row">
+    <div class="insights-derived-stat"><div class="insights-derived-label">Cost per Day (÷30)</div><div class="insights-derived-value" id="insightsCostPerDay">$0.00</div></div>
+    <div class="insights-derived-stat"><div class="insights-derived-label">Cost per Working Day (÷22)</div><div class="insights-derived-value" id="insightsCostPerWorkDay">$0.00</div></div>
+  </div>
+</div>
+<!-- Revenue Panel -->
+<div class="settings-card">
+  <div class="settings-card-title">Revenue — Last 30 Days</div>
+  <div class="settings-card-subtitle">Pulled live from transaction history</div>
+  <div id="insightsRevLoading" style="text-align:center;padding:2rem 0"><div class="spinner" style="margin:0 auto 0.5rem"></div><div style="color:var(--muted);font-size:0.85rem">Loading revenue…</div></div>
+  <div id="insightsRevData" style="display:none">
+    <div class="insights-stat-row"><span class="insights-stat-label">Total Revenue (30d)</span><span class="insights-stat-value" id="insightsRev30d">—</span></div>
+    <div class="insights-stat-row"><span class="insights-stat-label">Daily Average (÷30)</span><span class="insights-stat-value" id="insightsDailyRev">—</span></div>
+    <div class="insights-stat-row"><span class="insights-stat-label">Working Day Average (÷22)</span><span class="insights-stat-value" id="insightsWorkDayRev">—</span></div>
+  </div>
+</div>
+</div>
+<!-- Profit Calculator -->
+<div class="settings-card" style="margin-top:1.5rem">
+  <div class="settings-card-title">Daily Profit Analysis</div>
+  <div class="settings-card-subtitle" style="margin-bottom:1rem">Based on 30-day daily averages vs cost structure</div>
+  <div id="insightsProfitWait" style="text-align:center;padding:1rem 0;color:var(--muted);font-size:0.9rem">Waiting for revenue data…</div>
+  <div id="insightsProfitData" style="display:none">
+    <div class="insights-metric-grid">
+      <div class="insights-metric"><div class="insights-metric-label">Daily Revenue</div><div class="insights-metric-value" id="pcDailyRev">—</div></div>
+      <div class="insights-metric"><div class="insights-metric-label">Daily Cost</div><div class="insights-metric-value" id="pcDailyCost">—</div></div>
+      <div class="insights-metric"><div class="insights-metric-label">Daily Gross Profit</div><div class="insights-metric-value" id="pcDailyProfit">—</div></div>
+    </div>
+    <div class="insights-metric-grid-2">
+      <div class="insights-metric"><div class="insights-metric-label">Profit Margin</div><div class="insights-metric-value" id="pcMargin">—</div></div>
+      <div class="insights-metric"><div class="insights-metric-label">Monthly Projected Profit</div><div class="insights-metric-value" id="pcMonthlyProfit">—</div></div>
+    </div>
+    <div class="insights-verdict" id="pcVerdict"></div>
+  </div>
+</div>
+<!-- Cost Breakdown -->
+<div class="settings-card" style="margin-top:1.5rem">
+  <div class="settings-card-title">Cost Breakdown — Daily Equivalent</div>
+  <div class="settings-card-subtitle">Each cost line ÷ 30 shows its daily contribution</div>
+  <div class="table-scroll" style="margin-top:0.5rem"><table class="insights-breakdown-table"><thead><tr><th>Cost Item</th><th>Type</th><th class="num">Monthly</th><th class="num">Per Day</th></tr></thead><tbody id="insightsCostBreakdownBody"></tbody></table></div>
+</div>
+</div></section><!--
  SECTION 5: AI Assistant
  --><section id="tab-ai" class="section full-h"><!-- Chat Header --><div class="ai-chat-header"><div class="ai-chat-header-left"><div class="ai-chat-avatar">VI</div><div><div class="ai-chat-name">Vet INC AI</div><div class="ai-chat-status">Connected to your clinic data</div></div></div><div class="ai-chat-indicators"><div class="ai-status-item"><span class="ai-data-dot" id="dotService"></span> Service Usage</div><div class="ai-status-item"><span class="ai-data-dot" id="dotCatalog"></span> Price Catalog</div><div class="ai-status-item"><span class="ai-data-dot" id="dotPriceHistory"></span> Price History</div></div></div><!-- Messages --><div class="ai-messages" id="aiMessages"><div class="msg-row"><div class="msg-avatar ai">VI</div><div class="msg-meta"><div class="msg-bubble ai"><p><strong>Good morning, I'm your Vet INC AI assistant.</strong></p><p>I have full access to your service history, pricing catalog, price change history, and transaction data. Ask me anything about the clinic — I'll answer with real numbers from your data.</p><p style="color:var(--muted);font-size:0.82rem">Try asking about revenue, pricing gaps, service trends, or building an estimate.</p></div><div class="msg-time">--:--</div></div></div></div><!-- Suggested Prompts --><div class="ai-suggestions"><button class="suggestion-chip" onclick="sendQuickAction('How are we performing this month?')">How are we performing this month?</button><button class="suggestion-chip" onclick="sendQuickAction('Which services need a price increase?')">Which services need a price increase?</button><button class="suggestion-chip" onclick="sendQuickAction('What are our top 10 revenue drivers?')">Top 10 revenue drivers</button><button class="suggestion-chip" onclick="sendQuickAction('Show me the dental department breakdown')">Dental department</button><button class="suggestion-chip" onclick="sendQuickAction('Which services are growing?')">Growing services</button><button class="suggestion-chip" onclick="sendQuickAction('How much revenue are we leaving on the table?')">Revenue opportunities</button><button class="suggestion-chip" onclick="sendQuickAction('Build a wellness exam invoice')">Build an invoice</button><button class="suggestion-chip" onclick="sendQuickAction('Compare our best and worst months')">Best vs worst months</button><button class="suggestion-chip" onclick="sendQuickAction('What is our average transaction value?')">Avg transaction value</button><button class="suggestion-chip" onclick="sendQuickAction('Which categories drive the most volume?')">Category volume breakdown</button></div><!-- Input --><div class="ai-input-wrapper"><div class="ai-input-inner"><input class="ai-input" id="aiInput" type="text" placeholder="Ask anything about Rosslyn's clinic data…" onkeydown="if(event.key==='Enter') sendAIMessage()" /><button class="ai-send" id="aiSendBtn" onclick="sendAIMessage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send</button></div></div></section><!--
 SECTION 4: Settings
@@ -3538,9 +3653,149 @@ const ClinicSettings = (() => {
   return { init, addRow, deleteRow, updateRow };
 })();
 
+
+//
+// Profit Calculator Module
+//
+const ProfitCalculator = (() => {
+  let revLoaded = false;
+  let rev30d = 0;
+  let fetchStarted = false;
+
+  function fmtDollar(n) {
+    return '$' + (n || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  function renderCosts() {
+    const fixed = (typeof clinicFixedCosts === 'function') ? clinicFixedCosts() : [];
+    const utility = (typeof clinicUtilityCosts === 'function') ? clinicUtilityCosts() : [];
+    const totalFixed = fixed.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+    const totalUtility = utility.reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+    const totalMonthly = totalFixed + totalUtility;
+
+    function renderList(rows, elId) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      if (!rows.length) { el.innerHTML = '<div style="color:var(--muted);font-size:0.83rem;padding:0.5rem 0">No costs added yet — configure in Settings.</div>'; return; }
+      el.innerHTML = rows.map(r =>
+        '<div class="insights-cost-row"><span class="insights-cost-label">' + (r.label || 'Unnamed') + '</span><span class="insights-cost-amount">' + fmtDollar(parseFloat(r.amount) || 0) + '</span></div>'
+      ).join('');
+    }
+
+    renderList(fixed, 'insightsFixedList');
+    renderList(utility, 'insightsUtilityList');
+
+    const tmEl = document.getElementById('insightsTotalMonthly');
+    const dEl = document.getElementById('insightsCostPerDay');
+    const wEl = document.getElementById('insightsCostPerWorkDay');
+    if (tmEl) tmEl.textContent = fmtDollar(totalMonthly);
+    if (dEl) dEl.textContent = fmtDollar(totalMonthly / 30);
+    if (wEl) wEl.textContent = fmtDollar(totalMonthly / 22);
+
+    // Breakdown table
+    const tbody = document.getElementById('insightsCostBreakdownBody');
+    if (tbody) {
+      const allRows = [
+        ...fixed.map(r => ({ ...r, type: 'Fixed' })),
+        ...utility.map(r => ({ ...r, type: 'Utility' }))
+      ].filter(r => (parseFloat(r.amount) || 0) > 0);
+      if (!allRows.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:1rem">No cost data — configure in Settings.</td></tr>';
+      } else {
+        tbody.innerHTML = allRows.map(r => {
+          const amt = parseFloat(r.amount) || 0;
+          return '<tr><td>' + (r.label || 'Unnamed') + '</td><td style="color:var(--muted)">' + r.type + '</td><td class="num">' + fmtDollar(amt) + '</td><td class="num" style="color:var(--primary);font-weight:700">' + fmtDollar(amt / 30) + '</td></tr>';
+        }).join('');
+      }
+    }
+
+    if (revLoaded) renderProfit(totalMonthly);
+  }
+
+  function renderProfit(totalMonthly) {
+    const waitEl = document.getElementById('insightsProfitWait');
+    const dataEl = document.getElementById('insightsProfitData');
+    if (!waitEl || !dataEl) return;
+    waitEl.style.display = 'none';
+    dataEl.style.display = 'block';
+
+    const dailyRev = rev30d / 30;
+    const dailyCost = totalMonthly / 30;
+    const dailyProfit = dailyRev - dailyCost;
+    const margin = dailyRev > 0 ? (dailyProfit / dailyRev) * 100 : 0;
+    const monthlyProfit = dailyProfit * 30;
+
+    document.getElementById('pcDailyRev').textContent = fmtDollar(dailyRev);
+    document.getElementById('pcDailyCost').textContent = fmtDollar(dailyCost);
+
+    const profitEl = document.getElementById('pcDailyProfit');
+    if (profitEl) { profitEl.textContent = fmtDollar(dailyProfit); profitEl.style.color = dailyProfit >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+    const marginEl = document.getElementById('pcMargin');
+    if (marginEl) { marginEl.textContent = margin.toFixed(1) + '%'; marginEl.style.color = margin >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+    const mpEl = document.getElementById('pcMonthlyProfit');
+    if (mpEl) { mpEl.textContent = fmtDollar(monthlyProfit); mpEl.style.color = monthlyProfit >= 0 ? 'var(--green)' : 'var(--red)'; }
+
+    const verdictEl = document.getElementById('pcVerdict');
+    if (verdictEl) {
+      if (dailyProfit >= 0) {
+        verdictEl.className = 'insights-verdict profitable';
+        verdictEl.textContent = '✓ Profitable — generating ' + fmtDollar(dailyProfit) + '/day gross profit (' + margin.toFixed(1) + '% margin)';
+      } else {
+        verdictEl.className = 'insights-verdict loss';
+        verdictEl.textContent = '⚠ Running a loss of ' + fmtDollar(Math.abs(dailyProfit)) + '/day — costs exceed revenue by ' + Math.abs(margin).toFixed(1) + '%';
+      }
+    }
+  }
+
+  async function fetchRevenue() {
+    const loadEl = document.getElementById('insightsRevLoading');
+    const dataEl = document.getElementById('insightsRevData');
+    try {
+      const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+      const rows = await sbFetch('accounts', 'select=amount_raw&txn_date=gte.' + since + 'T00:00:00&order=txn_date.asc');
+      rev30d = rows.reduce((s, r) => s + ((parseFloat(r.amount_raw) || 0) / 100), 0);
+      revLoaded = true;
+      if (loadEl) loadEl.style.display = 'none';
+      if (dataEl) dataEl.style.display = 'block';
+      const r30El = document.getElementById('insightsRev30d');
+      const drEl = document.getElementById('insightsDailyRev');
+      const wdEl = document.getElementById('insightsWorkDayRev');
+      if (r30El) r30El.textContent = fmtDollar(rev30d);
+      if (drEl) drEl.textContent = fmtDollar(rev30d / 30);
+      if (wdEl) wdEl.textContent = fmtDollar(rev30d / 22);
+      const fixed = (typeof clinicFixedCosts === 'function') ? clinicFixedCosts() : [];
+      const utility = (typeof clinicUtilityCosts === 'function') ? clinicUtilityCosts() : [];
+      const totalMonthly = [...fixed, ...utility].reduce((s, r) => s + (parseFloat(r.amount) || 0), 0);
+      renderProfit(totalMonthly);
+    } catch (e) {
+      console.warn('ProfitCalculator revenue fetch error:', e);
+      if (loadEl) loadEl.innerHTML = '<div style="color:var(--red);font-size:0.85rem">Failed to load revenue data.</div>';
+    }
+  }
+
+  function init() {
+    renderCosts();
+    if (!fetchStarted) {
+      fetchStarted = true;
+      fetchRevenue();
+    }
+  }
+
+  return { init };
+})();
+
 // Initialize widget board on DOM ready
 document.addEventListener('DOMContentLoaded', function() {
   WidgetBoard.init();
   ClinicSettings.init();
+
+  // Hook insights tab to initialize ProfitCalculator
+  const origShowTab = window.showTab;
+  window.showTab = function(name, btn) {
+    origShowTab(name, btn);
+    if (name === 'insights') ProfitCalculator.init();
+  };
 });
 </script></body></html>
