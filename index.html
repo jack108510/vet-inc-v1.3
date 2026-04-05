@@ -1145,24 +1145,28 @@ let AI_totalRevenue = 0; let AI_totalQty = 0;
 
 async function loadDataAndBuild() {
  try {
+   // Fetch core data — assign each immediately so a later failure doesn't wipe earlier results
    const svcRows = await sbFetch('service_usage_agg', 'select=code,total_amount,total_qty,txn_count,service_type');
-   // Map to expected format for campaigns
    svcRows.forEach(r => { r.amount = r.total_amount / (r.txn_count || 1); r.quantity = r.total_qty; });
-   
-   const priceRows = await sbFetch('prices', 'select=treatment_code,price,updated_at&order=updated_at.asc');
-   
-   const treatRows = await sbFetch('treatments', 'select=code,name');
-   
-   const acctRows = await sbFetch('accounts', 'select=txn_date,amount_raw,type_flag&order=txn_date.asc');
-   
-   const mmRows = await sbFetch('micro_margin_agg', 'select=code,price,price_changed,sales_since_change,potential_uplift');
-   
    serviceData = svcRows;
+
+   const priceRows = await sbFetch('prices', 'select=treatment_code,price,updated_at&order=updated_at.asc');
    pricesData = priceRows;
+
+   const treatRows = await sbFetch('treatments', 'select=code,name');
    treatmentsData = treatRows;
-   accountsData = acctRows;
-   microMarginData = mmRows;
-   
+
+   // Non-critical fetches — don't let failures block campaigns
+   try {
+     const acctRows = await sbFetch('accounts', 'select=txn_date,amount_raw,type_flag&order=txn_date.asc');
+     accountsData = acctRows;
+   } catch(e) { console.warn('⚠️ accounts fetch failed (non-critical):', e.message); accountsData = []; }
+
+   try {
+     const mmRows = await sbFetch('micro_margin_agg', 'select=code,price,price_changed,sales_since_change,potential_uplift');
+     microMarginData = mmRows;
+   } catch(e) { console.warn('⚠️ micro_margin_agg fetch failed (non-critical):', e.message); microMarginData = []; }
+
    console.log('📊 DATA LOADED:');
    console.log('  serviceData:', serviceData.length, 'rows');
    console.log('  pricesData:', pricesData.length, 'rows');
@@ -1170,7 +1174,7 @@ async function loadDataAndBuild() {
    console.log('  accountsData:', accountsData.length, 'rows');
    if (serviceData.length > 0) console.log('  Sample service:', serviceData[0]);
    if (pricesData.length > 0) console.log('  Sample price:', pricesData[0]);
-   
+
    document.getElementById('dotService').classList.add('loaded');
    document.getElementById('dotCatalog').classList.add('loaded');
    document.getElementById('dotPriceHistory').classList.add('loaded');
@@ -1179,6 +1183,7 @@ async function loadDataAndBuild() {
    console.error('❌ Data load error:', e);
    const el = document.getElementById('campaignsLoading');
    if (el) el.innerHTML = '<div style="color:var(--red);padding:2rem;font-size:0.85rem"><strong>Data Load Error:</strong><br/>' + e.toString() + '</div>';
+   throw e; // re-throw so .then() chain doesn't run buildCampaigns with bad data
  }
 }
 
