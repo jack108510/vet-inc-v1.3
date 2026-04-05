@@ -1237,8 +1237,9 @@ async function loadDataAndBuild() {
 }
 
 loadDataAndBuild().then(() => {
-  document.getElementById('kpiDateLabel').textContent = 'All time';
-  document.getElementById('lastUpdated').textContent = 'Loading ' + (serviceData||[]).length.toLocaleString() + ' servicesâ€¦ campaigns next';
+  var kpiLabel = document.getElementById('kpiDateLabel');
+  if (kpiLabel) kpiLabel.textContent = 'All time';
+  document.getElementById('lastUpdated').textContent = 'Loaded ' + (serviceData||[]).length.toLocaleString() + ' services';
   return buildCampaigns();
 }).catch(e => {
   console.error('âŒ Campaign init error:', e);
@@ -1255,14 +1256,12 @@ let analyticsFilterDate = null;
 async function filterKPIByDate(dateStr) {
   analyticsFilterDate = dateStr ? new Date(dateStr + 'T12:00:00') : null;
   const label = document.getElementById('kpiDateLabel');
-  if (analyticsFilterDate) {
-    label.textContent = `Loading ${analyticsFilterDate.toLocaleDateString()}...`;
-  } else {
-    label.textContent = 'All time';
+  if (label) {
+    label.textContent = analyticsFilterDate ? 'Loading...' : 'All time';
   }
   analyticsReady = false;
   await buildAnalytics();
-  if (analyticsFilterDate) {
+  if (label && analyticsFilterDate) {
     label.textContent = analyticsFilterDate.toLocaleDateString();
   }
 }
