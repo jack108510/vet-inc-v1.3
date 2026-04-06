@@ -1685,7 +1685,7 @@ function refreshUpliftBoard() {
   function set(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
   set('ub-annual', annual > 0 ? fmt$(annual) : '--');
   set('ub-baseline-month', baselineMonthly > 0 ? fmt$(baselineMonthly) : '--');
-  set('ub-campaign-month', campaignMonth > 0 ? '+' + fmt$(campaignMonth) : '--');
+  // ub-campaign-month is set by loadCapturedRevenue() from actual implemented items
   set('ub-avg-txn', avg > 0 ? fmt$(avg) : '--');
   set('ub-c1', c1 > 0 ? fmt$(c1) + '/yr' : '--');
   set('ub-c2', c2 > 0 ? fmt$(c2) + '/yr' : '--');
@@ -1707,29 +1707,35 @@ async function loadCapturedRevenue() {
     if (!res.ok) {
       document.getElementById('ub-captured-total').textContent = '--';
       document.getElementById('ub-captured-yesterday').textContent = '--';
+      document.getElementById('ub-campaign-month').textContent = '--';
       return;
     }
     
     const items = await res.json();
     const now = new Date();
     const yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000);
     
     let total = 0;
     let yesterdayTotal = 0;
+    let monthTotal = 0;
     
     items.forEach(item => {
       const uplift = parseFloat(item.captured_uplift) || 0;
       const implDate = new Date(item.implemented_at);
       total += uplift;
       if (implDate >= yesterday) yesterdayTotal += uplift;
+      if (implDate >= thirtyDaysAgo) monthTotal += uplift;
     });
     
     document.getElementById('ub-captured-total').textContent = total > 0 ? fmt$(total) : '$0';
     document.getElementById('ub-captured-yesterday').textContent = yesterdayTotal > 0 ? '+' + fmt$(yesterdayTotal) : '$0';
+    document.getElementById('ub-campaign-month').textContent = monthTotal > 0 ? '+' + fmt$(monthTotal) : '$0';
   } catch (e) {
     console.error('Failed to load captured revenue:', e);
     document.getElementById('ub-captured-total').textContent = '--';
     document.getElementById('ub-captured-yesterday').textContent = '--';
+    document.getElementById('ub-campaign-month').textContent = '--';
   }
 }
 
