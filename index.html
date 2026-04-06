@@ -1017,6 +1017,7 @@
 .uplift-header{margin-bottom:1.75rem}
 .uplift-title{font-size:1.2rem;font-weight:700;color:var(--text)}
 .uplift-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.25rem}
+@media(max-width:1100px){.uplift-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:768px){.uplift-cards{grid-template-columns:1fr}}
 .uplift-card{background:#fff;border:1px solid var(--border);border-radius:16px;padding:2rem 1.75rem;display:flex;flex-direction:column;gap:0.4rem;box-shadow:0 1px 6px rgba(37,99,235,.05)}
 .uplift-card-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
@@ -1048,6 +1049,21 @@
       <div class="uplift-card-label">Avg Transaction Value</div>
       <div class="uplift-card-value ub-blue" id="ub-avg-txn">--</div>
       <div class="uplift-card-sub">Per Line Item</div>
+    </div>
+    <div class="uplift-card">
+      <div class="uplift-card-label">Revenue Captured</div>
+      <div class="uplift-card-value ub-green" id="ub-captured-total">--</div>
+      <div class="uplift-card-sub">Since Campaign Activation</div>
+    </div>
+    <div class="uplift-card">
+      <div class="uplift-card-label">Captured This Week</div>
+      <div class="uplift-card-value ub-green" id="ub-captured-week">--</div>
+      <div class="uplift-card-sub">Last 7 Days</div>
+    </div>
+    <div class="uplift-card">
+      <div class="uplift-card-label">Captured Yesterday</div>
+      <div class="uplift-card-value ub-green" id="ub-captured-yesterday">--</div>
+      <div class="uplift-card-sub">Last 24 Hours</div>
     </div>
   </div>
   <div class="uplift-breakdown">
