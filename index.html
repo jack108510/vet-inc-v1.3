@@ -1256,7 +1256,7 @@ async function loadDataAndBuild() {
    // Map to expected format for campaigns
    svcRows.forEach(r => { r.amount = r.total_amount / (r.txn_count || 1); r.quantity = r.total_qty; });
    
-   const priceRows = await sbFetch('prices', 'select=treatment_code,price,updated_at,last_changed&order=updated_at.asc');
+   const priceRows = await sbFetch('prices', 'select=treatment_code,price,updated_at&order=updated_at.asc');
    
    const treatRows = await sbFetch('treatments', 'select=code,name,type_flag');
    
@@ -1696,9 +1696,9 @@ async function campaignFetch(campaign) {
       const typeFlag = treatTypeMap[code] || '';
       if (typeFlag && typeFlag.toUpperCase() !== 'A') continue;
       const name = treatMap[code] || code;
-      // Use last_changed (real Avimark date) if available, fall back to updated_at
+      // Use updated_at (billing-derived date) - last_changed from PRICE.V2$ is unreliable
       let lastModYear, daysSince, lastModStr;
-      const dateStr = p.last_changed || p.updated_at;
+      const dateStr = p.updated_at;
       if (dateStr) {
         const d = new Date(dateStr);
         if (isNaN(d.getTime())) continue;
