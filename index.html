@@ -4945,7 +4945,7 @@ var CAL_MONTH = 0;
 var SURL = "https://rnqhhzatlxmyvccdvqkr.supabase.co";
 var SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucWhoemF0bHhteXZjY2R2cWtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTQ5ODUsImV4cCI6MjA5MDU5MDk4NX0.zokle21pVEPG5bIOFiyZIWYkYIwhkolWNOhJ7Cbub30";
 var calCosts = null;
-var MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+var CAL_MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
 function calFmt(n){ return n>=1000?"$"+(n/1000).toFixed(1)+"k":"$"+n.toFixed(0); }
 function calFmtFull(n){ return "$"+n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2}); }
@@ -4971,7 +4971,7 @@ async function calLoadCosts(){
 }
 
 async function calLoad(){
-  document.getElementById("calMonthLabel").textContent=MONTH_NAMES[CAL_MONTH]+" "+CAL_YEAR;
+  document.getElementById("calMonthLabel").textContent=CAL_MONTH_NAMES[CAL_MONTH]+" "+CAL_YEAR;
   document.getElementById("calLoading").style.display="block";
   document.getElementById("calDays").innerHTML="";
   document.getElementById("calSummary").innerHTML="";
