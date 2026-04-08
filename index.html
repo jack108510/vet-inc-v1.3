@@ -1427,17 +1427,17 @@ let AI_totalRevenue = 0; let AI_totalQty = 0;
 
 async function loadDataAndBuild() {
  try {
-   const svcRows = await sbFetch('service_usage_agg', 'select=code,total_amount,total_qty,txn_count,service_type');
+   const svcRows = await sbFetchAll('service_usage_agg', 'select=code,total_amount,total_qty,txn_count,service_type');
    // Map to expected format for campaigns
    svcRows.forEach(r => { r.amount = r.total_amount / (r.txn_count || 1); r.quantity = r.total_qty; });
    
-   const priceRows = await sbFetch('prices', 'select=treatment_code,price,updated_at&order=updated_at.asc');
+   const priceRows = await sbFetchAll('prices', 'select=treatment_code,price,updated_at&order=updated_at.asc');
    
-   const treatRows = await sbFetch('treatments', 'select=code,name,type_flag');
+   const treatRows = await sbFetchAll('treatments', 'select=code,name,type_flag');
    
-   const acctRows = await sbFetch('accounts', 'select=txn_date,amount_raw,type_flag&order=txn_date.asc');
+   const acctRows = await sbFetchAll('accounts', 'select=txn_date,amount_raw,type_flag&order=txn_date.asc');
    
-   const mmRows = await sbFetch('micro_margin_agg', 'select=code,price,price_changed,sales_since_change,potential_uplift');
+   const mmRows = await sbFetchAll('micro_margin_agg', 'select=code,price,price_changed,sales_since_change,potential_uplift');
    
    serviceData = svcRows;
    pricesData = priceRows;
