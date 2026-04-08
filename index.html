@@ -4979,8 +4979,15 @@ async function calLoad(){
   var eDate=new Date(CAL_YEAR,CAL_MONTH+1,1);
   var e=eDate.getFullYear()+"-"+String(eDate.getMonth()+1).padStart(2,"0")+"-01";
   var costs=await calLoadCosts();
-  var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date&service_date=gte."+s+"T00:00:00&service_date=lt."+e+"T00:00:00&limit=10000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
-  var svcs=await r.json();
+  // Paginated fetch to get all services for the month
+  var svcs=[],calOff=0;
+  while(true){
+    var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date&service_date=gte."+s+"T00:00:00&service_date=lt."+e+"T00:00:00&offset="+calOff+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
+    var chunk=await r.json();
+    svcs=svcs.concat(chunk);
+    calOff+=1000;
+    if(chunk.length<1000) break;
+  }
   var byDay={};
   svcs.forEach(function(svc){
     if(!svc.service_date) return;
