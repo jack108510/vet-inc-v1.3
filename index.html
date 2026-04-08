@@ -4943,7 +4943,7 @@ document.addEventListener('DOMContentLoaded', () => {
 var CAL_YEAR = 2026;
 var CAL_MONTH = 0;
 var SURL = "https://rnqhhzatlxmyvccdvqkr.supabase.co";
-var SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucWhoemF0bHhteXZjY2R2cWtyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTAxNDk4NSwiZXhwIjoyMDkwNTkwOTg1fQ.Js6sEzcCbIkIx5QDtk4TDtSliUeD52e2H2D-Sxatg2w";
+var SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucWhoemF0bHhteXZjY2R2cWtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTQ5ODUsImV4cCI6MjA5MDU5MDk4NX0.zokle21pVEPG5bIOFiyZIWYkYIwhkolWNOhJ7Cbub30";
 var calCosts = null;
 var MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
@@ -5037,8 +5037,14 @@ async function calLoad(){
 }
 function calPrev(){CAL_MONTH--;if(CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}calLoad();}
 function calNext(){CAL_MONTH++;if(CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}calLoad();}
-var _origShowTab=window.showTab;
-window.showTab=function(tab,btn){_origShowTab(tab,btn);if(tab==="insights")calLoad();};
+// Trigger calendar when insights tab becomes visible
+document.addEventListener("DOMContentLoaded", function(){
+  var insightsBtn = document.querySelector(".tab-btn[onclick*='insights']");
+  if(insightsBtn){
+    var origOnclick = insightsBtn.getAttribute("onclick");
+    insightsBtn.setAttribute("onclick", origOnclick + ";calLoad();");
+  }
+});
 </script>
 
 <!-- Campaign Analytics Modal -->
