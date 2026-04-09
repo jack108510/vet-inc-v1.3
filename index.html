@@ -3157,7 +3157,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // 
 const WidgetBoard = (() => {
   const CACHE_TTL = 5 * 60 * 1000;
-  const STORAGE_KEY = 'rosslyn_widget_layout';
+  const STORAGE_KEY = 'rosslyn_widget_layout_v2';
   const DEFAULT_LAYOUT = ['month-revenue','week-revenue','today-revenue','new-clients','monthly-trend','revenue-by-category','top-services'];
 
   const sbCache = {};
@@ -4078,6 +4078,11 @@ const WidgetBoard = (() => {
   //  Init 
   function init() {
     layout = loadLayout();
+    // Ensure New Clients KPI is present after update
+    if (!layout.includes('new-clients')) {
+      layout.splice(3, 0, 'new-clients');
+      saveLayout(layout);
+    }
 
     // Edit / Done button toggles jiggle mode
     document.getElementById('btnEditWidgets')?.addEventListener('click', () => {
@@ -5199,8 +5204,11 @@ window.addEventListener("load",function(){
   var _st=window.showTab;
   window.showTab=function(tab,btn){
     _st(tab,btn);
-    if(tab==="insights") calLoad();
+    if(tab==="insights") { calLoad(); if (typeof InsightsDashboard!=='undefined') InsightsDashboard.init(); }
+    if(tab==="analytics") { if (typeof WidgetBoard!=='undefined') WidgetBoard.init(); }
   };
+  // If insights tab is already active on load
+  if(document.getElementById('tab-insights')?.classList.contains('active')) calLoad();
 });
 </script>
 
