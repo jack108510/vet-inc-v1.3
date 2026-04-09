@@ -1007,7 +1007,7 @@
 </style></head><body><!-- HEADER --><header class="header"><div class="header-left"><div class="logo-wrap"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="logo-text">Vet <span>INC</span></div></div><div class="header-divider"></div><div class="clinic-name" id="clinicName">Rosslyn Veterinary Clinic</div></div><div class="header-right"><span class="last-updated" id="lastUpdated">Loading data...</span><span class="btn-upload" style="cursor:default;pointer-events:none;opacity:0.75">&#9679; Live</span></div></header><!-- TAB NAV --><nav class="tab-nav"><button class="tab-btn active" onclick="showTab('analytics', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg></span> Key Indicators
  </button><button class="tab-btn" onclick="showTab('campaigns', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Pricing Intelligence
  </button><button class="tab-btn" onclick="showTab('insights', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span> Insights &amp; Actions
- </button><button class="tab-btn" onclick="showTab('inventory', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span> Inventory Intelligence
+ </button><button class="tab-btn" onclick="showTab('inventory', this)" style="pointer-events:none;opacity:0.5" title="Locked"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span> Inventory Intelligence
  </button><button class="tab-btn" onclick="showTab('ai', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></span> AI Assistant
  </button><button class="tab-btn" onclick="showTab('settings', this)"><span class="tab-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></span> Settings
  </button></nav><!--
@@ -1144,39 +1144,7 @@
       <button class="btn-analytics" onclick="openCampaignAnalytics('micro-margin')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg> Analytics</button>
      </div></div></div><div id="c3Summary" style="display:flex;gap:2rem;padding:1rem 1.75rem;border-bottom:1px solid var(--border);background:#f8faff;flex-wrap:wrap"></div><button class="campaign-toggle" onclick="toggleCampaign(this)">See More <span class="toggle-arrow">&#9662;</span></button><div class="campaign-body"><div class="table-scroll"><table><thead><tr><th>Item</th><th class="num">Price Increase</th><th class="num">Current &rarr; +5% Bump</th><th class="num">Annual Volume</th><th class="num">Extra Margin / Year</th></tr></thead><tbody id="c3Table"></tbody></table></div></div></div></div></section><!--
  SECTION 3: Inventory Intelligence (Coming Soon)
- --><section id="tab-inventory" class="section"><div style="padding:1.5rem 1.75rem">
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
- <div>
-   <div style="font-size:1.2rem;font-weight:800;color:var(--text)">Inventory Usage & COGS</div>
-   <div style="font-size:0.8rem;color:var(--muted)">Estimated from billing lines matched to inventory items via service_code</div>
- </div>
- <div id="invKpis" style="display:flex;gap:1.5rem;flex-wrap:wrap"></div>
-</div>
-<div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
- <input id="invSearch" type="text" placeholder="Search inventory..." style="flex:1;min-width:200px;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem">
- <select id="invMarginFilter" style="padding:0.5rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem">
-   <option value="all">All margins</option>
-   <option value="profitable">Profitable (>0%)</option>
-   <option value="loss">Loss (&lt;0%)</option>
-   <option value="high">High margin (&gt;50%)</option>
- </select>
-</div>
-<div class="table-scroll" style="max-height:calc(100vh - 280px);overflow-y:auto">
-<table style="width:100%;border-collapse:collapse;font-size:0.8rem">
-<thead style="position:sticky;top:0;z-index:2"><tr style="background:var(--header-bg)">
- <th style="text-align:left;padding:0.6rem 0.75rem;color:#fff">Item</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Unit Cost</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Qty Sold</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Revenue</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Est. COGS</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Gross Profit</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Margin</th>
- <th style="text-align:right;padding:0.6rem 0.75rem;color:#fff">Txns</th>
-</tr></thead>
-<tbody id="invTable"></tbody>
-</table>
-</div>
-</div></section><!--
+ --><section id="tab-inventory" class="section"><div style="min-height:60vh;display:flex;align-items:center;justify-content:center;background:#eff6ff"><div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(37,99,235,0.08);padding:3rem 4rem;text-align:center;max-width:520px"><div style="font-size:3rem;margin-bottom:1rem">🔒</div><div style="font-size:1.4rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">Inventory Intelligence Locked</div><div style="font-size:0.95rem;color:#94a3b8">Temporarily locked while we audit COGS and revenue data.</div></div></div></section><!--
  SECTION 4: Insights & Actions
  --><section id="tab-insights" class="section"><div style="padding:1.5rem 1.75rem">
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
@@ -5087,34 +5055,11 @@ async function calFetchMonth(y,m){
     if(day) kpiMap[day.slice(0,10)]={rev:k.revenue||0,visits:k.visits||0,line_items:k.line_items||0,unique_services:k.unique_services||0,avg_line:k.avg_line_amount||0};
   });
 
-  // 2. COGS from billing lines
-  var costs=await calGetCosts();
-  var all=[],off=0;
-  while(true){
-    var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date&service_date=gte."+s+"&service_date=lt."+e+"&offset="+off+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
-    var d=await r.json();
-    all=all.concat(d);
-    off+=1000;
-    if(d.length<1000) break;
-  }
-  var cogsByDay={};
-  all.forEach(function(svc){
-    if(!svc.service_date) return;
-    var day=svc.service_date.slice(0,10);
-    if(!cogsByDay[day]) cogsByDay[day]=0;
-    var amt=svc.amount||0;
-    var code=String(svc.code||"").trim();
-    var stripped=code.replace(/[A-Za-z]+$/,"");
-    var uc=costs[code]||costs[stripped]||0;
-    if(uc){var qty=svc.quantity||1;var c=uc*qty;if(c<=Math.abs(amt)*3) cogsByDay[day]+=c;}
-  });
-
-  // 3. Merge
+  // 2. Merge (COGS computed on click only, to keep calendar fast)
   var byDay={};
-  var allDays=new Set(Object.keys(kpiMap).concat(Object.keys(cogsByDay)));
-  allDays.forEach(function(day){
+  Object.keys(kpiMap).forEach(function(day){
     var k=kpiMap[day];
-    byDay[day]={rev:k?k.rev:0,cogs:cogsByDay[day]||0,visits:k?k.visits:0,line_items:k?k.line_items:0,unique_services:k?k.unique_services:0,avg_line:k?k.avg_line:0};
+    byDay[day]={rev:k?k.rev:0,cogs:null,visits:k?k.visits:0,line_items:k?k.line_items:0,unique_services:k?k.unique_services:0,avg_line:k?k.avg_line:0};
   });
   return byDay;
 }
@@ -5189,17 +5134,21 @@ async function calLoad(){
       cell.style.cssText="padding:0.4rem 0.5rem;min-height:85px;border-right:"+br+";border-bottom:1px solid #dbeafe;background:#f8fafc;";
       cell.innerHTML="<div style='font-size:0.72rem;font-weight:700;color:#94a3b8'>"+d+"</div><div style='font-size:0.65rem;color:#cbd5e1;margin-top:4px'>Closed</div>";
     } else {
-      var rev=dd.rev,cogs=dd.cogs,gp=rev-cogs,margin=rev>0?gp/rev*100:0,cogsP=rev>0?cogs/rev*100:0;
-      totalRev+=rev; totalCogs+=cogs;
+      var rev=dd.rev,cogs=dd.cogs;
+      var gp=(cogs==null?0:(rev-cogs));
+      var margin=(cogs==null?0:(rev>0?gp/rev*100:0));
+      var cogsP=(cogs==null?0:(rev>0?cogs/rev*100:0));
+      totalRev+=rev; if(cogs!=null) totalCogs+=cogs;
       var bg,bc;
-      if(margin>=85){bg="#dcfce7";bc="#16a34a";}
+      if(cogs==null){bg="#eef2ff";bc="#6366f1";}
+      else if(margin>=85){bg="#dcfce7";bc="#16a34a";}
       else if(margin>=70){bg="#fef9c3";bc="#ca8a04";}
       else{bg="#fee2e2";bc="#ef4444";}
       cell.style.cssText="padding:0.4rem 0.5rem;min-height:85px;border-right:"+br+";border-bottom:1px solid #dbeafe;background:"+bg+";border-left:3px solid "+bc+";cursor:pointer;";
       cell.innerHTML="<div style='font-size:0.72rem;font-weight:700;color:#1e3a5f'>"+d+"</div>"
         +"<div style='font-size:0.8rem;font-weight:700;color:#1e3a5f'>"+calFmt(rev)+"</div>"
-        +"<div style='font-size:0.64rem;color:#64748b'>COGS "+calFmt(cogs)+"</div>"
-        +"<div style='font-size:0.64rem;font-weight:600;color:"+bc+"'>"+cogsP.toFixed(1)+"% of rev</div>";
+        +"<div style='font-size:0.64rem;color:#64748b'>COGS "+(cogs==null?"—":calFmt(cogs))+"</div>"
+        +"<div style='font-size:0.64rem;font-weight:600;color:"+bc+"'>"+(cogs==null?"":cogsP.toFixed(1)+"% of rev")+"</div>";
       (function(dayStr){cell.onclick=function(){openDayModal(dayStr);};})(ds);
     }
     container.appendChild(cell);
@@ -5208,10 +5157,13 @@ async function calLoad(){
   var total=firstDay+lastDay,rem=total%7;
   if(rem>0){for(var i=rem;i<7;i++){var em=document.createElement("div");em.style.cssText="min-height:85px;border-bottom:1px solid #dbeafe;background:#fafbff;";container.appendChild(em);}}
 
-  var avgM=totalRev>0?(totalRev-totalCogs)/totalRev*100:0;
+  var avgM=(totalRev>0 && totalCogs>0)?(totalRev-totalCogs)/totalRev*100:null;
   var sumEl=document.getElementById("calSummary");
   function kpi(l,v,c){return "<div style='display:flex;flex-direction:column;gap:2px'><div style='font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em'>"+l+"</div><div style='font-size:1rem;font-weight:700;color:"+(c||"var(--text)")+"'>"+v+"</div></div>";}
-  sumEl.innerHTML=kpi("Month Revenue",calFmtFull(totalRev))+kpi("Total COGS",calFmtFull(totalCogs),"#ef4444")+kpi("Gross Profit",calFmtFull(totalRev-totalCogs),"#16a34a")+kpi("Avg Margin",avgM.toFixed(1)+"%",avgM>=85?"#16a34a":avgM>=70?"#ca8a04":"#ef4444");
+  sumEl.innerHTML=kpi("Month Revenue",calFmtFull(totalRev))
+    +kpi("Total COGS",(totalCogs>0?calFmtFull(totalCogs):"—"),"#ef4444")
+    +kpi("Gross Profit",(totalCogs>0?calFmtFull(totalRev-totalCogs):"—"),"#16a34a")
+    +kpi("Avg Margin",(avgM==null?"—":avgM.toFixed(1)+"%"),avgM>=85?"#16a34a":avgM>=70?"#ca8a04":"#ef4444");
 }
 
 async function openDayModal(day){
