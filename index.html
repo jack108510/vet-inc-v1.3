@@ -1960,7 +1960,7 @@ function buildAvgTxnChart() {
   }
 
   const ctx = canvas.getContext('2d');
-  if (window.avgTxnChart) window.avgTxnChart.destroy();
+  if (window.avgTxnChart && typeof window.avgTxnChart.destroy==='function') window.avgTxnChart.destroy();
   window.avgTxnChart = new Chart(ctx, {
     type: 'line',
     data: {
