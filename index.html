@@ -4077,12 +4077,9 @@ const WidgetBoard = (() => {
 
   //  Init 
   function init() {
-    layout = loadLayout();
-    // Ensure New Clients KPI is present after update
-    if (!layout.includes('new-clients')) {
-      layout.splice(3, 0, 'new-clients');
-      saveLayout(layout);
-    }
+    // Force fresh layout to ensure New Clients shows
+    layout = DEFAULT_LAYOUT.slice();
+    saveLayout(layout);
 
     // Edit / Done button toggles jiggle mode
     document.getElementById('btnEditWidgets')?.addEventListener('click', () => {
