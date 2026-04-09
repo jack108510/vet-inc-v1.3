@@ -5143,7 +5143,7 @@ async function openDayModal(day){
     calDayModal=document.createElement("div");
     calDayModal.className="modal-overlay";
     calDayModal.onclick=function(e){if(e.target===calDayModal)calDayModal.style.display="none";};
-    calDayModal.innerHTML='<div class="modal-content" style="max-width:660px"><div class="modal-header"><h2 id="calDayTitle"></h2><button class="modal-close" onclick="calDayModal.style.display=\'none\'">&times;</button></div><div class="modal-body" id="calDayBody"></div></div>';
+    calDayModal.innerHTML='<div class="modal-content" style="max-width:92vw;height:88vh;overflow:hidden"><div class="modal-header"><h2 id="calDayTitle"></h2><button class="modal-close" onclick="calDayModal.style.display=\'none\'">&times;</button></div><div class="modal-body" id="calDayBody" style="height:calc(88vh - 64px);overflow:auto"></div></div>';
     document.body.appendChild(calDayModal);
   }
   var d=new Date(day+"T12:00:00");
@@ -5161,8 +5161,9 @@ async function openDayModal(day){
   var avgTxn=data.visits>0?rev/data.visits:0;
   var sorted=Object.values(data.items).sort(function(a,b){return b.rev-a.rev;});
 
-  var h='<div style="max-width:620px;margin:0 auto">';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.2rem">';
+  var h='<div style="max-width:1100px;margin:0 auto">';
+  h+='<div style="font-size:0.85rem;color:#64748b;margin-bottom:0.75rem">Daily Analytics</div>';
+  h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.8rem;margin-bottom:1.2rem">';
   function kpi(l,v,c){return '<div style="background:#f8fafc;border-radius:10px;padding:0.7rem 0.9rem"><div style="font-size:0.66rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">'+l+'</div><div style="font-size:1.15rem;font-weight:800;color:'+(c||"#1e3a5f")+'">'+v+'</div></div>';}
   h+=kpi("Revenue",calFmtFull(rev),"#1e3a5f");
   h+=kpi("COGS",calFmtFull(cogs),"#ef4444");
