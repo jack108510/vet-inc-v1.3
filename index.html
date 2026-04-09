@@ -5040,24 +5040,18 @@ document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => CampaignUI.loadCampaignState(), 1000);
 });
 
-// ===== REVENUE CALENDAR =====
-var CAL_YEAR = 2026;
-var CAL_MONTH = 0;
-var byDay={};
-var byDayItems={};
-var SURL = "https://rnqhhzatlxmyvccdvqkr.supabase.co";
-var SKEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucWhoemF0bHhteXZjY2R2cWtyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTQ5ODUsImV4cCI6MjA5MDU5MDk4NX0.zokle21pVEPG5bIOFiyZIWYkYIwhkolWNOhJ7Cbub30";
-var calCosts = null;
-var CAL_MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-function calFmt(n){ return n>=1000?"$"+(n/1000).toFixed(1)+"k":"$"+n.toFixed(0); }
-function calFmtFull(n){ return "$"+n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+// ===== REVENUE CALENDAR (clean rewrite) =====
+var CAL_YEAR = new Date().getFullYear();
+var CAL_MONTH = new Date().getMonth();
+var calCostsCache = null;
+var calDayModal = null;
 
-async function calLoadCosts(){
-  if(calCosts) return calCosts;
-  var c={}, offset=0;
+async function calGetCosts(){
+  if(calCostsCache) return calCostsCache;
+  var c={},off=0;
   while(true){
-    var r=await fetch(SURL+"/rest/v1/items?select=code,unit_cost&offset="+offset+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
+    var r=await fetch(SURL+"/rest/v1/items?select=code,unit_cost&offset="+off+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
     var d=await r.json();
     if(!d.length) break;
     d.forEach(function(item){
@@ -5067,68 +5061,102 @@ async function calLoadCosts(){
         if(s) c[s]=item.unit_cost;
       }
     });
-    offset+=1000;
+    off+=1000;
     if(d.length<1000) break;
   }
-  calCosts=c; return c;
+  calCostsCache=c;
+  return c;
 }
 
-async function calLoad(){
-  document.getElementById("calMonthLabel").textContent=CAL_MONTH_NAMES[CAL_MONTH]+" "+CAL_YEAR;
-  document.getElementById("calLoading").style.display="block";
-  document.getElementById("calDays").innerHTML="";
-  document.getElementById("calSummary").innerHTML="";
-  var s=CAL_YEAR+"-"+String(CAL_MONTH+1).padStart(2,"0")+"-01";
-  var eDate=new Date(CAL_YEAR,CAL_MONTH+1,1);
-  var e=eDate.getFullYear()+"-"+String(eDate.getMonth()+1).padStart(2,"0")+"-01";
-  var costs=await calLoadCosts();
-  // Paginated fetch to get all services for the month
-  var svcs=[],calOff=0;
+async function calFetchDay(day){
+  var costs=await calGetCosts();
+  var all=[],off=0;
   while(true){
-    var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date&service_date=gte."+s+"T00:00:00&service_date=lt."+e+"T00:00:00&offset="+calOff+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
-    var chunk=await r.json();
-    svcs=svcs.concat(chunk);
-    calOff+=1000;
-    if(chunk.length<1000) break;
+    var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date,service_type,description&service_date=gte."+day+"T00:00:00&service_date=lt."+day+"T23:59:59&offset="+off+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
+    var d=await r.json();
+    all=all.concat(d);
+    off+=1000;
+    if(d.length<1000) break;
   }
-  byDay={};
-  byDayItems={};
-  svcs.forEach(function(svc){
+  var rev=0,cogs=0,items={};
+  all.forEach(function(svc){
+    var amt=svc.amount||0;
+    rev+=amt;
+    var code=String(svc.code||"").trim();
+    var stripped=code.replace(/[A-Za-z]+$/,"");
+    var uc=costs[code]||costs[stripped]||0;
+    var qty=svc.quantity||1;
+    var itemCost=0;
+    if(uc){itemCost=uc*qty;if(itemCost<=Math.abs(amt)*3) cogs+=itemCost;}
+    var key=code||"(N/A)";
+    if(!items[key]) items[key]={code:key,name:svc.description||code,qty:0,rev:0,cogs:0,txns:0,type:svc.service_type||""};
+    items[key].qty+=qty;
+    items[key].rev+=amt;
+    items[key].cogs+=itemCost;
+    items[key].txns++;
+  });
+  return {rev:rev,cogs:cogs,items:items,txns:all.length};
+}
+
+async function calFetchMonth(y,m){
+  var s=y+"-"+String(m+1).padStart(2,"0")+"-01";
+  var eDt=new Date(y,m+1,1);
+  var e=eDt.getFullYear()+"-"+String(eDt.getMonth()+1).padStart(2,"0")+"-01";
+  var costs=await calGetCosts();
+  var all=[],off=0;
+  while(true){
+    var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date&service_date=gte."+s+"&service_date=lt."+e+"&offset="+off+"&limit=1000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
+    var d=await r.json();
+    all=all.concat(d);
+    off+=1000;
+    if(d.length<1000) break;
+  }
+  var byDay={};
+  all.forEach(function(svc){
     if(!svc.service_date) return;
     var day=svc.service_date.slice(0,10);
     if(!byDay[day]) byDay[day]={rev:0,cogs:0};
-    if(!byDayItems[day]) byDayItems[day]={};
     var amt=svc.amount||0;
     byDay[day].rev+=amt;
     var code=String(svc.code||"").trim();
     var stripped=code.replace(/[A-Za-z]+$/,"");
-    var uc=costs[code]||costs[stripped];
-    var itemCost=0;
-    if(uc){var qty=svc.quantity||1;itemCost=uc*qty;if(itemCost<=amt*3) byDay[day].cogs+=itemCost;}
-    // Track per-item data
-    var key=code||"(N/A)";
-    if(!byDayItems[day][key]) byDayItems[day][key]={code:key,qty:0,rev:0,cogs:0,txns:0};
-    byDayItems[day][key].qty+=(svc.quantity||1);
-    byDayItems[day][key].rev+=amt;
-    byDayItems[day][key].cogs+=itemCost;
-    byDayItems[day][key].txns++;
+    var uc=costs[code]||costs[stripped]||0;
+    if(uc){var qty=svc.quantity||1;var c=uc*qty;if(c<=Math.abs(amt)*3) byDay[day].cogs+=c;}
   });
+  return byDay;
+}
+
+function calFmt(n){return n>=1000?"$"+(n/1000).toFixed(1)+"k":"$"+n.toFixed(0);}
+function calFmtFull(n){return "$"+n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+async function calLoad(){
+  document.getElementById("calLoading").style.display="block";
+  document.getElementById("calDays").innerHTML="";
+  document.getElementById("calSummary").innerHTML="";
+  var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  document.getElementById("calMonthLabel").textContent=MN[CAL_MONTH]+" "+CAL_YEAR;
+
+  var byDay=await calFetchMonth(CAL_YEAR,CAL_MONTH);
+
   document.getElementById("calLoading").style.display="none";
   var container=document.getElementById("calDays");
   var firstDay=new Date(CAL_YEAR,CAL_MONTH,1).getDay();
   var lastDay=new Date(CAL_YEAR,CAL_MONTH+1,0).getDate();
   var totalRev=0,totalCogs=0;
+
   for(var i=0;i<firstDay;i++){
     var em=document.createElement("div");
     em.style.cssText="min-height:85px;border-right:1px solid #dbeafe;border-bottom:1px solid #dbeafe;background:#fafbff;";
     container.appendChild(em);
   }
+
   for(var d=1;d<=lastDay;d++){
     var ds=CAL_YEAR+"-"+String(CAL_MONTH+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
     var dd=byDay[ds];
     var cell=document.createElement("div");
     var col=(firstDay+d-1)%7;
     var br=col<6?"1px solid #dbeafe":"none";
+
     if(!dd||dd.rev===0){
       cell.style.cssText="padding:0.4rem 0.5rem;min-height:85px;border-right:"+br+";border-bottom:1px solid #dbeafe;background:#f8fafc;";
       cell.innerHTML="<div style='font-size:0.72rem;font-weight:700;color:#94a3b8'>"+d+"</div><div style='font-size:0.65rem;color:#cbd5e1;margin-top:4px'>Closed</div>";
@@ -5140,148 +5168,28 @@ async function calLoad(){
       else if(margin>=70){bg="#fef9c3";bc="#ca8a04";}
       else{bg="#fee2e2";bc="#ef4444";}
       cell.style.cssText="padding:0.4rem 0.5rem;min-height:85px;border-right:"+br+";border-bottom:1px solid #dbeafe;background:"+bg+";border-left:3px solid "+bc+";cursor:pointer;";
-      cell.title=ds+"\nRevenue: "+calFmtFull(rev)+"\nCOGS: "+calFmtFull(cogs)+"\nMargin: "+margin.toFixed(1)+"%";
-      cell.setAttribute("data-day",ds);
-      cell.onclick=function(){showDayDetail(this.getAttribute("data-day"));};
       cell.innerHTML="<div style='font-size:0.72rem;font-weight:700;color:#1e3a5f'>"+d+"</div>"
         +"<div style='font-size:0.8rem;font-weight:700;color:#1e3a5f'>"+calFmt(rev)+"</div>"
         +"<div style='font-size:0.64rem;color:#64748b'>COGS "+calFmt(cogs)+"</div>"
         +"<div style='font-size:0.64rem;font-weight:600;color:"+bc+"'>"+cogsP.toFixed(1)+"% of rev</div>";
+      (function(dayStr){
+        cell.onclick=function(){openDayModal(dayStr);};
+      })(ds);
     }
     container.appendChild(cell);
   }
+
   var total=firstDay+lastDay,rem=total%7;
   if(rem>0){for(var i=rem;i<7;i++){var em=document.createElement("div");em.style.cssText="min-height:85px;border-bottom:1px solid #dbeafe;background:#fafbff;";container.appendChild(em);}}
+
   var avgM=totalRev>0?(totalRev-totalCogs)/totalRev*100:0;
   var sumEl=document.getElementById("calSummary");
   function kpi(l,v,c){return "<div style='display:flex;flex-direction:column;gap:2px'><div style='font-size:0.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em'>"+l+"</div><div style='font-size:1rem;font-weight:700;color:"+(c||"var(--text)")+"'>"+v+"</div></div>";}
   sumEl.innerHTML=kpi("Month Revenue",calFmtFull(totalRev))+kpi("Total COGS",calFmtFull(totalCogs),"#ef4444")+kpi("Gross Profit",calFmtFull(totalRev-totalCogs),"#16a34a")+kpi("Avg Margin",avgM.toFixed(1)+"%",avgM>=85?"#16a34a":avgM>=70?"#ca8a04":"#ef4444");
 }
-// Day Detail Modal
-var calDayModal=null;
-function showDayDetail(day){
-  var dd=byDay[day];
-  var items=byDayItems[day];
-  if(!dd&&!items){
-    // Fetch on demand if not in calendar cache
-    fetchDayDetail(day);
-    return;
-  }
-  var rev=dd?dd.rev:0, cogs=dd?dd.cogs:0, gp=rev-cogs, margin=rev>0?gp/rev*100:0;
-  var d=new Date(day+"T12:00:00");
-  var label=CAL_MONTH_NAMES[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
 
-  // Daily fixed cost from settings
-  var monthlyFixed=0;
-  if(window.clinicTotalFixed) monthlyFixed=window.clinicTotalFixed();
-  var dailyFixed=monthlyFixed/30;
-
-  // Count unique services and total transactions
-  var txns=0, uniqueItems=0;
-  if(items){for(var k in items){txns+=items[k].txns;uniqueItems++;}}
-
-  // Avg transaction value
-  var avgTxn=txns>0?rev/txns:0;
-
-  // Net profit = gross profit - daily fixed cost
-  var netProfit=gp-dailyFixed;
-
-  var h='<div style="max-width:550px;margin:0 auto">';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">';
-
-  function kpi(l,v,c){
-    return '<div style="background:#f8fafc;border-radius:10px;padding:0.8rem 1rem"><div style="font-size:0.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">'+l+'</div><div style="font-size:1.2rem;font-weight:800;color:'+(c||"#1e3a5f")+'">'+v+'</div></div>';
-  }
-
-  h+=kpi("Revenue",calFmtFull(rev),"#1e3a5f");
-  h+=kpi("COGS",calFmtFull(cogs),"#ef4444");
-  h+=kpi("Gross Profit",calFmtFull(gp),"#16a34a");
-  h+=kpi("Margin",margin.toFixed(1)+"%",margin>=85?"#16a34a":margin>=70?"#ca8a04":"#ef4444");
-  h+=kpi("Fixed Cost (daily)",calFmtFull(dailyFixed),"#8b5cf6");
-  h+=kpi("Net Profit",calFmtFull(netProfit),netProfit>=0?"#16a34a":"#ef4444");
-  h+=kpi("Staff Cost","—","#64748b");
-  h+=kpi("Avg Transaction",calFmtFull(avgTxn),"#0ea5e9");
-  h+=kpi("Transactions",fmtN(txns),"#1e3a5f");
-  h+=kpi("Unique Services",fmtN(uniqueItems),"#1e3a5f");
-
-  h+='</div></div>';
-
-  if(!calDayModal){
-    calDayModal=document.createElement("div");
-    calDayModal.className="modal-overlay";
-    calDayModal.onclick=function(e){if(e.target===calDayModal)calDayModal.style.display="none";};
-    calDayModal.innerHTML='<div class="modal-content" style="max-width:620px"><div class="modal-header"><h2 id="calDayTitle"></h2><button class="modal-close" onclick="calDayModal.style.display=\'none\'">&times;</button></div><div class="modal-body" id="calDayBody"></div></div>';
-    document.body.appendChild(calDayModal);
-  }
-  document.getElementById("calDayTitle").textContent=label+" — Daily Summary";
-  document.getElementById("calDayBody").innerHTML=h;
-  calDayModal.style.display="flex";
-}
-async function fetchDayDetail(day){
-  // Fetch a single day's services directly from Supabase
-  var costs=await calLoadCosts();
-  var r=await fetch(SURL+"/rest/v1/services?select=code,amount,quantity,service_date,service_type,description&service_date=gte."+day+"T00:00:00&service_date=lt."+day+"T23:59:59&limit=5000",{headers:{"apikey":SKEY,"Authorization":"Bearer "+SKEY}});
-  var svcs=await r.json();
-  
-  var rev=0,cogs=0,txns=0,uniqueItems=0;
-  var itemMap={};
-  svcs.forEach(function(svc){
-    var amt=svc.amount||0;
-    rev+=amt;
-    txns++;
-    var code=String(svc.code||"").trim();
-    var stripped=code.replace(/[A-Za-z]+$/,"");
-    var uc=costs[code]||costs[stripped];
-    var itemCost=0;
-    if(uc){itemCost=uc*(svc.quantity||1);if(itemCost<=Math.abs(amt)*3)cogs+=itemCost;}
-    var key=code||"(N/A)";
-    if(!itemMap[key])itemMap[key]={code:key,name:svc.description||code,qty:0,rev:0,cogs:0,txns:0,type:svc.service_type||""};
-    itemMap[key].qty+=(svc.quantity||1);
-    itemMap[key].rev+=amt;
-    itemMap[key].cogs+=itemCost;
-    itemMap[key].txns++;
-  });
-  
-  var gp=rev-cogs,margin=rev>0?gp/rev*100:0;
-  var monthlyFixed=0;
-  if(window.clinicTotalFixed)monthlyFixed=window.clinicTotalFixed();
-  var dailyFixed=monthlyFixed/30;
-  var netProfit=gp-dailyFixed;
-  var avgTxn=txns>0?rev/txns:0;
-  uniqueItems=Object.keys(itemMap).length;
-  
-  var d=new Date(day+"T12:00:00");
-  var label=CAL_MONTH_NAMES[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
-  
-  var h='<div style="max-width:600px;margin:0 auto">';
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.2rem">';
-  function kpi(l,v,c){return '<div style="background:#f8fafc;border-radius:10px;padding:0.8rem 1rem"><div style="font-size:0.68rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">'+l+'</div><div style="font-size:1.2rem;font-weight:800;color:'+(c||"#1e3a5f")+'">'+v+'</div></div>';}
-  h+=kpi("Revenue",calFmtFull(rev),"#1e3a5f");
-  h+=kpi("COGS",calFmtFull(cogs),"#ef4444");
-  h+=kpi("Gross Profit",calFmtFull(gp),"#16a34a");
-  h+=kpi("Margin",margin.toFixed(1)+"%",margin>=85?"#16a34a":margin>=70?"#ca8a04":"#ef4444");
-  h+=kpi("Fixed Cost (daily)",calFmtFull(dailyFixed),"#8b5cf6");
-  h+=kpi("Net Profit",calFmtFull(netProfit),netProfit>=0?"#16a34a":"#ef4444");
-  h+=kpi("Staff Cost","—","#64748b");
-  h+=kpi("Avg Transaction",calFmtFull(avgTxn),"#0ea5e9");
-  h+=kpi("Transactions",fmtN(txns),"#1e3a5f");
-  h+=kpi("Unique Services",fmtN(uniqueItems),"#1e3a5f");
-  h+='</div>';
-  
-  // Service breakdown table
-  var sorted=Object.values(itemMap).sort(function(a,b){return b.rev-a.rev;});
-  if(sorted.length){
-    h+='<div style="font-size:0.85rem;font-weight:700;margin-bottom:0.5rem">Service Breakdown</div>';
-    h+='<div style="max-height:350px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">';
-    h+='<table style="width:100%;border-collapse:collapse;font-size:0.78rem">';
-    h+='<thead><tr style="background:#f8fafc;position:sticky;top:0"><th style="text-align:left;padding:0.5rem 0.75rem;border-bottom:1px solid #e2e8f0">Service</th><th style="text-align:right;padding:0.5rem 0.75rem;border-bottom:1px solid #e2e8f0">Qty</th><th style="text-align:right;padding:0.5rem 0.75rem;border-bottom:1px solid #e2e8f0">Revenue</th></tr></thead><tbody>';
-    sorted.slice(0,30).forEach(function(r){
-      h+='<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:0.35rem 0.75rem"><div style="font-weight:600">'+(r.name||r.code)+'</div><div style="font-size:0.68rem;color:#64748b">'+r.code+' ('+r.type+')</div></td><td style="text-align:right;padding:0.35rem 0.75rem">'+r.qty.toFixed(0)+'</td><td style="text-align:right;padding:0.35rem 0.75rem;font-weight:600;color:'+(r.rev>=0?"#1e3a5f":"#ef4444")+'">'+calFmtFull(r.rev)+'</td></tr>';
-    });
-    h+='</tbody></table></div>';
-  }
-  h+='</div>';
-  
+async function openDayModal(day){
+  var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
   if(!calDayModal){
     calDayModal=document.createElement("div");
     calDayModal.className="modal-overlay";
@@ -5289,19 +5197,59 @@ async function fetchDayDetail(day){
     calDayModal.innerHTML='<div class="modal-content" style="max-width:660px"><div class="modal-header"><h2 id="calDayTitle"></h2><button class="modal-close" onclick="calDayModal.style.display=\'none\'">&times;</button></div><div class="modal-body" id="calDayBody"></div></div>';
     document.body.appendChild(calDayModal);
   }
-  document.getElementById("calDayTitle").textContent=label+" — Daily Summary";
-  document.getElementById("calDayBody").innerHTML=h;
+  var d=new Date(day+"T12:00:00");
+  document.getElementById("calDayTitle").textContent=MN[d.getMonth()]+" "+d.getDate()+", "+d.getFullYear();
+  document.getElementById("calDayBody").innerHTML="<div style='text-align:center;padding:2rem;color:var(--muted)'>Loading...</div>";
   calDayModal.style.display="flex";
+
+  var data=await calFetchDay(day);
+  var rev=data.rev,cogs=data.cogs,gp=rev-cogs,margin=rev>0?gp/rev*100:0;
+  var monthlyFixed=0;
+  if(window.clinicTotalFixed) monthlyFixed=window.clinicTotalFixed();
+  var dailyFixed=monthlyFixed/30;
+  var netProfit=gp-dailyFixed;
+  var avgTxn=data.txns>0?rev/data.txns:0;
+  var uniqueItems=Object.keys(data.items).length;
+  var sorted=Object.values(data.items).sort(function(a,b){return b.rev-a.rev;});
+
+  var h='<div style="max-width:620px;margin:0 auto">';
+  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;margin-bottom:1.2rem">';
+  function kpi(l,v,c){return '<div style="background:#f8fafc;border-radius:10px;padding:0.7rem 0.9rem"><div style="font-size:0.66rem;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em">'+l+'</div><div style="font-size:1.15rem;font-weight:800;color:'+(c||"#1e3a5f")+'">'+v+'</div></div>';}
+  h+=kpi("Revenue",calFmtFull(rev),"#1e3a5f");
+  h+=kpi("COGS",calFmtFull(cogs),"#ef4444");
+  h+=kpi("Gross Profit",calFmtFull(gp),"#16a34a");
+  h+=kpi("Margin",margin.toFixed(1)+"%",margin>=85?"#16a34a":margin>=70?"#ca8a04":"#ef4444");
+  h+=kpi("Fixed Cost",calFmtFull(dailyFixed),"#8b5cf6");
+  h+=kpi("Net Profit",calFmtFull(netProfit),netProfit>=0?"#16a34a":"#ef4444");
+  h+=kpi("Staff Cost","—","#64748b");
+  h+=kpi("Avg Transaction",calFmtFull(avgTxn),"#0ea5e9");
+  h+=kpi("Transactions",""+data.txns,"#1e3a5f");
+  h+=kpi("Unique Items",""+uniqueItems,"#1e3a5f");
+  h+='</div>';
+
+  if(sorted.length){
+    h+='<div style="font-size:0.85rem;font-weight:700;margin-bottom:0.5rem">Service Breakdown</div>';
+    h+='<div style="max-height:300px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:8px">';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:0.78rem">';
+    h+='<thead><tr style="background:#f8fafc;position:sticky;top:0"><th style="text-align:left;padding:0.4rem 0.6rem;border-bottom:1px solid #e2e8f0">Service</th><th style="text-align:right;padding:0.4rem 0.6rem;border-bottom:1px solid #e2e8f0">Qty</th><th style="text-align:right;padding:0.4rem 0.6rem;border-bottom:1px solid #e2e8f0">Revenue</th></tr></thead><tbody>';
+    sorted.slice(0,30).forEach(function(r){
+      h+='<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:0.3rem 0.6rem"><div style="font-weight:600">'+(r.name||r.code)+'</div><div style="font-size:0.66rem;color:#64748b">'+r.code+' &middot; '+r.type+'</div></td><td style="text-align:right;padding:0.3rem 0.6rem">'+r.qty.toFixed(0)+'</td><td style="text-align:right;padding:0.3rem 0.6rem;font-weight:600;color:'+(r.rev>=0?"#1e3a5f":"#ef4444")+'">'+calFmtFull(r.rev)+'</td></tr>';
+    });
+    if(sorted.length>30) h+='<tr><td colspan="3" style="padding:0.4rem 0.6rem;font-weight:700;color:#64748b">+'+( sorted.length-30)+' more</td></tr>';
+    h+='</tbody></table></div>';
+  }
+  h+='</div>';
+  document.getElementById("calDayBody").innerHTML=h;
 }
 
 function calPrev(){CAL_MONTH--;if(CAL_MONTH<0){CAL_MONTH=11;CAL_YEAR--;}calLoad();}
 function calNext(){CAL_MONTH++;if(CAL_MONTH>11){CAL_MONTH=0;CAL_YEAR++;}calLoad();}
-// Hook calendar into tab switching - run after all other DOMContentLoaded handlers
-window.addEventListener("load", function(){
-  var _st = window.showTab;
-  window.showTab = function(tab, btn){
-    _st(tab, btn);
-    if(tab === "insights") calLoad();
+
+window.addEventListener("load",function(){
+  var _st=window.showTab;
+  window.showTab=function(tab,btn){
+    _st(tab,btn);
+    if(tab==="insights") calLoad();
   };
 });
 </script>
