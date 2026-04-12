@@ -1014,6 +1014,14 @@
 .insight-item.open .insight-detail{display:block;}
 .insight-pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-weight:700;font-size:.72rem;background:#eef2ff;color:#4338ca;}
 
+
+.campaign-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.campaign-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;box-shadow:0 8px 20px rgba(15,23,42,.06);}
+.campaign-title{font-weight:800;color:#1e3a8a;}
+.campaign-meta{color:#64748b;font-size:.85rem;margin-top:4px;}
+.campaign-body{margin-top:8px;color:#475569;font-size:.9rem;}
+.campaign-metrics{display:flex;gap:12px;margin-top:10px;font-size:.85rem;color:#1e3a8a;font-weight:700;}
+
 </style></head><body>
 <div id="loginGate" style="position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;">
   <div style="background:#111827;padding:24px;border-radius:14px;min-width:320px">
@@ -1070,6 +1078,14 @@
 .insight-detail{display:none;margin-top:8px;background:#fff;border:1px dashed #e2e8f0;border-radius:8px;padding:8px;font-size:.85rem;color:#475569;}
 .insight-item.open .insight-detail{display:block;}
 .insight-pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-weight:700;font-size:.72rem;background:#eef2ff;color:#4338ca;}
+
+
+.campaign-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.campaign-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;box-shadow:0 8px 20px rgba(15,23,42,.06);}
+.campaign-title{font-weight:800;color:#1e3a8a;}
+.campaign-meta{color:#64748b;font-size:.85rem;margin-top:4px;}
+.campaign-body{margin-top:8px;color:#475569;font-size:.9rem;}
+.campaign-metrics{display:flex;gap:12px;margin-top:10px;font-size:.85rem;color:#1e3a8a;font-weight:700;}
 
 </style>
 <div class="uplift-board">
@@ -1244,7 +1260,23 @@
 </div>
 </div></section><!-- SECTION 5: AI Assistant
  --><section id="tab-ai" class="section"><div style="min-height:60vh;display:flex;align-items:center;justify-content:center;background:#eff6ff"><div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(37,99,235,0.08);padding:3rem 4rem;text-align:center;max-width:480px"><div style="font-size:3.5rem;margin-bottom:1rem">&#129302;</div><div style="font-size:1.5rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">AI Assistant</div><div style="font-size:1rem;color:#94a3b8">This module is coming soon.</div></div></div></section><!-- SECTION 4: Settings
---><section id="tab-marketing" class="section"><div class="settings-wrap"><div class="settings-page-header"><div><div class="settings-page-title">Marketing</div><div class="settings-page-sub">Campaign tracking & outreach status</div></div></div><div class="insight-inbox"><div class="settings-card-title">Marketing Queue</div><div class="insight-item"><div class="insight-title">Pipeline: 12 outreach sequences running</div><div class="insight-body">Next touch scheduled in 48 hours.</div></div></div></div></section><section id="tab-settings" class="section"><div class="settings-wrap" style="max-width:960px;margin:0 auto;padding:2rem 1.5rem">
+--><section id="tab-marketing" class="section">
+  <div class="section-header"><div class="section-title">Marketing Campaigns</div><div class="section-sub">Clinic outreach campaigns & performance</div></div>
+  <div class="campaign-grid">
+    <div class="campaign-card">
+      <div class="campaign-title">Campaign 1 — Facebook Posts</div>
+      <div class="campaign-meta">Status: Active • Schedule: Daily</div>
+      <div class="campaign-body">Auto‑posting branded updates to keep the clinic visible and top‑of‑mind.</div>
+      <div class="campaign-metrics"><span>Posts this week: 5</span><span>Engagement: 3.2%</span></div>
+    </div>
+    <div class="campaign-card">
+      <div class="campaign-title">Campaign 2 — Email Follow‑ups</div>
+      <div class="campaign-meta">Overdue Vaccines & Checkups</div>
+      <div class="campaign-body">Automated reminders to bring pets back in, reduce churn, and increase lifetime value.</div>
+      <div class="campaign-metrics"><span>Pending: 142</span><span>Sent: 58</span></div>
+    </div>
+  </div>
+</section><section id="tab-settings" class="section"><div class="settings-wrap" style="max-width:960px;margin:0 auto;padding:2rem 1.5rem">
 
 <!-- Page Header -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem">
