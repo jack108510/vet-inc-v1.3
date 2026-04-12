@@ -1278,34 +1278,29 @@
  --><section id="tab-ai" class="section"><div style="min-height:60vh;display:flex;align-items:center;justify-content:center;background:#eff6ff"><div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(37,99,235,0.08);padding:3rem 4rem;text-align:center;max-width:480px"><div style="font-size:3.5rem;margin-bottom:1rem">&#129302;</div><div style="font-size:1.5rem;font-weight:700;color:#1e293b;margin-bottom:0.5rem">AI Assistant</div><div style="font-size:1rem;color:#94a3b8">This module is coming soon.</div></div></div></section><!-- SECTION 4: Settings
 --><section id="tab-marketing" class="section">
   <div class="section-header"><div class="section-title">Marketing Intelligence</div><div class="section-sub">Campaign controls & approvals</div></div>
-  <div class="campaign-grid">
+  <div class="campaign-grid" style="grid-template-columns:1fr;">
     <div class="campaign-card">
       <div class="campaign-title">Campaign 1 — Facebook Posts</div>
-      <div class="campaign-meta">Status: Active</div>
-      <div class="campaign-body">
-        <div class="campaign-metrics"><span>Posts / week</span><span><input type="number" value="4" style="width:70px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px" /></span></div>
-        <div class="campaign-metrics"><span>Queued</span><span>6</span></div>
-        <div class="campaign-metrics"><span>Approved</span><span>12</span></div>
-      </div>
+      <div class="campaign-meta">Approve / Reject content</div>
       <div class="queue">
         <div class="queue-item"><span>“Why your website matters”</span><div class="queue-actions"><button class="approve">Approve</button><button class="reject">Reject</button></div></div>
+        <div class="queue-item"><span>“$29/mo local sites”</span><div class="queue-actions"><button class="approve">Approve</button><button class="reject">Reject</button></div></div>
       </div>
       <textarea placeholder="Drop new post content…" rows="3" style="width:100%;margin-top:8px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;"></textarea>
       <button class="campaign-btn" style="margin-top:6px;">Add to Schedule</button>
     </div>
+
     <div class="campaign-card">
       <div class="campaign-title">Campaign 2 — Email Follow‑ups</div>
-      <div class="campaign-meta">Overdue Vaccines & Checkups</div>
+      <div class="campaign-meta">Approve message + track analytics</div>
       <div class="campaign-body">
-        <div class="campaign-metrics"><span>Emails / week</span><span><input type="number" value="150" style="width:80px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:6px" /></span></div>
-        <div class="campaign-metrics"><span>Queued</span><span>28</span></div>
-        <div class="campaign-metrics"><span>Approved</span><span>44</span></div>
+        <div class="campaign-metrics"><span>Sent (30d)</span><span>420</span></div>
+        <div class="campaign-metrics"><span>Open rate</span><span>38%</span></div>
+        <div class="campaign-metrics"><span>Booked</span><span>22</span></div>
       </div>
       <div class="queue">
-        <div class="queue-item"><span>“Vaccine reminder”</span><div class="queue-actions"><button class="approve">Approve</button><button class="reject">Reject</button></div></div>
+        <div class="queue-item"><span>Email: Vaccine reminder</span><div class="queue-actions"><button class="approve">Approve</button><button class="reject">Reject</button></div></div>
       </div>
-      <textarea placeholder="Drop new email content…" rows="3" style="width:100%;margin-top:8px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;"></textarea>
-      <button class="campaign-btn" style="margin-top:6px;">Add to Schedule</button>
     </div>
   </div>
 </section><section id="tab-settings" class="section"><div class="settings-wrap" style="max-width:960px;margin:0 auto;padding:2rem 1.5rem">
