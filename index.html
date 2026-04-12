@@ -5229,4 +5229,38 @@ window.addEventListener("load",function(){
   </div>
 </div>
 
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPA_URL = "https://zbcljqrfxlvdpjtumtzy.supabase.co";
+const SUPA_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpiY2xqcXJmeGx2ZHBqdHVtdHp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5NDI0NjAsImV4cCI6MjA5MTUxODQ2MH0.leck03bYM7wgb2K1RYSo6GLFvhUKDTwXHfGt232WIR4";
+const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
+
+function showLogin(){
+  const gate = document.createElement('div');
+  gate.id='loginGate';
+  gate.style.cssText='position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;';
+  gate.innerHTML = `
+    <div style="background:#111827;padding:24px;border-radius:14px;min-width:320px">
+      <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">Vet INC Login</div>
+      <input id="loginEmail" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
+      <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
+      <button id="loginBtn" style="width:100%;padding:10px;margin-top:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:700">Sign in</button>
+      <div id="loginErr" style="margin-top:6px;color:#fca5a5;font-size:.85rem"></div>
+    </div>`;
+  document.body.appendChild(gate);
+  document.getElementById('loginBtn').onclick = async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    const { error } = await supa.auth.signInWithPassword({ email, password });
+    if (error) document.getElementById('loginErr').textContent = error.message;
+    else document.getElementById('loginGate').remove();
+  };
+}
+
+(async ()=>{
+  const { data } = await supa.auth.getSession();
+  if (!data.session) showLogin();
+})();
+</script>
 </body></html>
