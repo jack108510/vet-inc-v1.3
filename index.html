@@ -1037,6 +1037,7 @@
     <input id="loginEmail" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
     <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
     <button id="loginBtn" style="width:100%;padding:10px;margin-top:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:700">Sign in</button>
+    <button id="guestBtn" style="width:100%;padding:10px;margin-top:8px;background:#1f2937;color:#fff;border:none;border-radius:8px;font-weight:700">Enter without login</button>
     <div id="loginErr" style="margin-top:6px;color:#fca5a5;font-size:.85rem"></div>
   </div>
 </div>
@@ -5353,6 +5354,7 @@ function showLogin(){
       <input id="loginEmail" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
       <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
       <button id="loginBtn" style="width:100%;padding:10px;margin-top:8px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-weight:700">Sign in</button>
+      <button id="guestBtn" style="width:100%;padding:10px;margin-top:8px;background:#1f2937;color:#fff;border:none;border-radius:8px;font-weight:700">Enter without login</button>
       <div id="loginErr" style="margin-top:6px;color:#fca5a5;font-size:.85rem"></div>
     </div>`;
   document.body.appendChild(gate);
@@ -5362,6 +5364,9 @@ function showLogin(){
     const { error } = await supa.auth.signInWithPassword({ email, password });
     if (error) document.getElementById('loginErr').textContent = error.message;
     else document.getElementById('loginGate').remove();
+  };
+  document.getElementById('guestBtn').onclick = () => {
+    document.getElementById('loginGate').remove();
   };
 }
 
