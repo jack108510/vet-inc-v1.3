@@ -1034,7 +1034,7 @@
 .implement-btn{background:#16a34a;color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:.82rem;font-weight:700;cursor:pointer}
 .implement-btn:hover{filter:brightness(1.05)}
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;z-index:10000}
-.modal-card{background:#fff;border:1px solid var(--border);border-radius:16px;max-width:720px;width:92%;padding:18px;box-shadow:0 18px 40px rgba(15,23,42,.2)}
+.modal-card{background:#fff;border:1px solid var(--border);border-radius:16px;max-width:560px;max-height:80vh;overflow-y:auto;width:92%;padding:18px;box-shadow:0 18px 40px rgba(15,23,42,.2)}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .modal-head h3{font-size:1rem;font-weight:800}
 .modal-close{background:#e2e8f0;border:none;border-radius:8px;padding:6px 10px;cursor:pointer}
@@ -5407,9 +5407,9 @@ function closePriceReview(){
       <h3 id="implementTitle">Implement Campaign</h3>
       <button class="modal-close" onclick="closeImplement()">Close</button>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px">
-      <div style="color:var(--muted);font-size:.85rem">Uncheck items you do NOT want to change.</div>
-      <div style="font-weight:800">Total uplift: <span id="implementTotal">$0</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px;padding:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px">
+      <div style="color:#16a34a;font-size:.85rem">Uncheck items you do NOT want to change.</div>
+      <div style="font-weight:900;color:#16a34a;font-size:1.1rem">Uplift: <span id="implementTotal">$0</span></div>
     </div>
     <div class="modal-list" id="implementList"></div>
     <div class="modal-actions">
