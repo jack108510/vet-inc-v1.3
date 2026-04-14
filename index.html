@@ -5516,13 +5516,16 @@ function generateReport(type){
     : ['Item','Price Increase','Current → +5% Bump','Annual Volume','Extra Margin/yr'];
 
   let totalUplift = 0;
+  let totalVolume = 0;
+  const uplifts = [];
   const thCols = heads.length;
   let bodyRows = '';
   rows.forEach(r => {
     const tds = Array.from(r.querySelectorAll('td')).map(td => td.textContent.trim());
     if(!tds.length) return;
     const upliftVal = parseFloat((tds[tds.length-1]||'').replace(/[^0-9.\-]/g,''));
-    if(!isNaN(upliftVal)) totalUplift += upliftVal;
+    if(!isNaN(upliftVal)) { totalUplift += upliftVal; uplifts.push(upliftVal); }
+    if(type==='99-pricing' && tds[5]) { const v=parseFloat(tds[5].replace(/[^0-9.\-]/g,'')); if(!isNaN(v)) totalVolume+=v; }
     bodyRows += '<tr>' + tds.map((td,i) => {
       const s = i===tds.length-1 ? ' style="color:#16a34a;font-weight:700"' : '';
       return `<td${s}>${td}</td>`;
@@ -5531,6 +5534,20 @@ function generateReport(type){
 
   const thRow = '<tr>' + heads.map(h => `<th>${h}</th>`).join('') + '</tr>';
   const date = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const avgUplift = uplifts.length ? totalUplift/uplifts.length : 0;
+
+  let summaryCards = `
+<div class="stat"><div class="label">Total Items</div><div class="value">${rows.length}</div></div>
+<div class="stat"><div class="label">Total Annual Uplift</div><div class="value">$${totalUplift.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}</div></div>`;
+
+  if(type==='99-pricing'){
+    const gains = rows.map(r => { const tds=Array.from(r.querySelectorAll('td')); return parseFloat((tds[4]?.textContent||'').replace(/[^0-9.\-]/g,'')); }).filter(v=>!isNaN(v));
+    const avgGain = gains.length ? (gains.reduce((a,b)=>a+b,0)/gains.length) : 0;
+    summaryCards += `
+<div class="stat"><div class="label">Avg Increase/Txn</div><div class="value">$${avgGain.toFixed(2)}</div></div>
+<div class="stat"><div class="label">Total Transactions</div><div class="value">${totalVolume.toLocaleString()}</div></div>
+<div class="stat"><div class="label">Avg Uplift/Item</div><div class="value">$${avgUplift.toFixed(0)}</div></div>`;
+  }
 
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
 body{font-family:Inter,system-ui,Arial;margin:30px;color:#1e293b;font-size:12px}
@@ -5549,8 +5566,7 @@ tr:nth-child(even){background:#fafbfc}
 <h1>${title}</h1>
 <div class="sub">Rosslyn Veterinary Clinic | Generated ${date} | Vet INC</div>
 <div class="summary">
-<div class="stat"><div class="label">Total Items</div><div class="value">${rows.length}</div></div>
-<div class="stat"><div class="label">Total Annual Uplift</div><div class="value">$${totalUplift.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}</div></div>
+${summaryCards}
 </div>
 <table><thead>${thRow}</thead><tbody>${bodyRows}</tbody></table>
 <div style="margin-top:16px;font-size:.7rem;color:#94a3b8">Vet INC | Powered by Wilde Automations</div>
