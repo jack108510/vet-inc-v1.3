@@ -1040,6 +1040,7 @@
 .modal-close{background:#e2e8f0;border:none;border-radius:8px;padding:6px 10px;cursor:pointer}
 .modal-list{display:grid;gap:8px;margin-top:10px}
 .modal-item{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:.85rem}
+.impl-usage{font-size:.75rem;background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;border-radius:6px;padding:2px 8px;white-space:nowrap}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px}
 .modal-actions .secondary{background:#e2e8f0;color:#0f172a}
 .modal-actions .primary{background:var(--primary);color:#fff}
@@ -5451,24 +5452,24 @@ function openCampaignImplement(type){
         const name = tds[1] || tds[0];
         const current = tds[5] || '';
         const suggested = tds[6] || '';
-        const usage = tds[8] || '';
-        const uplift = tds[9] || '';
-        return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span style="font-size:.78rem;color:var(--muted)">Usage: ${usage}/yr</span></div>`;
+        const usage = tds[8] || '0';
+        const uplift = tds[9] || '0';
+        return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span class="impl-usage">${usage}/yr</span></div>`;
       }
       if (type==='99-pricing') {
         const name = tds[0] || '';
         const current = tds[2] || '';
         const suggested = tds[3] || '';
-        const usage = tds[5] || '';
-        const uplift = tds[6] || '';
-        return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span style="font-size:.78rem;color:var(--muted)">Vol: ${usage}</span></div>`;
+        const usage = tds[5] || '0';
+        const uplift = tds[6] || '0';
+        return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span class="impl-usage">${usage}/yr</span></div>`;
       }
       const name = tds[0] || '';
       const current = (tds[1]||'').replace(/\s+/g,' ');
       const suggested = (tds[2]||'').replace(/\s+/g,' ');
-      const usage = tds[3] || '';
-      const uplift = tds[4] || '';
-      return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span style="font-size:.78rem;color:var(--muted)">Vol: ${usage}</span></div>`;
+      const usage = tds[3] || '0';
+      const uplift = tds[4] || '0';
+      return `<div class="impl-row modal-item" data-uplift="${uplift}" style="flex-wrap:wrap;gap:6px"><label style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px"><input type="checkbox" checked data-idx="${idx}" onchange="updateImplementTotal()"/> <b>${name}</b></label><span style="font-size:.82rem">${current} → <b>${suggested}</b></span><span class="impl-usage">${usage}/yr</span></div>`;
     }).join('');
   }
   updateImplementTotal();
