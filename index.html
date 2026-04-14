@@ -5421,22 +5421,34 @@ function openCampaignImplement(type){
   const list = document.getElementById('implementList');
   const title = document.getElementById('implementTitle');
   if(!list||!title) return;
-  const items = {
-    'inflation': [
-      {name:'Wellness Exam', current:'$79', suggested:'$89'},
-      {name:'Dental Cleaning', current:'$560', suggested:'$620'}
-    ],
-    '99-pricing': [
-      {name:'Nail Trim', current:'$22.00', suggested:'$24.99'},
-      {name:'X‑Ray Package', current:'$199.00', suggested:'$199.99'}
-    ],
-    'micro-margin': [
-      {name:'Surgical Kit', current:'$1,450', suggested:'$1,522'},
-      {name:'Lab Panel', current:'$115', suggested:'$129'}
-    ]
-  }[type] || [];
   title.textContent = 'Implement ' + (type==='inflation'?'Inflation Adjustment':type==='99-pricing'?'.99 Pricing':'Micro‑Margin') + ' Campaign';
-  list.innerHTML = items.map(i=>`<div class="modal-item"><span>${i.name}</span><span>${i.current} → <b>${i.suggested}</b></span></div>`).join('');
+  const tableId = type==='inflation'?'c1Table':type==='99-pricing'?'c2Table':'c3Table';
+  const table = document.getElementById(tableId);
+  let rows = table ? Array.from(table.querySelectorAll('tr')) : [];
+  if (!rows.length) {
+    list.innerHTML = '<div class="modal-item"><span>No price changes found.</span></div>';
+  } else {
+    list.innerHTML = rows.map(r=>{
+      const tds = Array.from(r.querySelectorAll('td')).map(td=>td.textContent.trim());
+      if (type==='inflation') {
+        const name = tds[1] || tds[0];
+        const current = tds[5] || '';
+        const suggested = tds[6] || '';
+        return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+      }
+      if (type==='99-pricing') {
+        const name = tds[0] || '';
+        const current = tds[2] || '';
+        const suggested = tds[3] || '';
+        return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+      }
+      // micro-margin
+      const name = tds[0] || '';
+      const current = (tds[1]||'').replace(/\s+/g,' ');
+      const suggested = (tds[2]||'').replace(/\s+/g,' ');
+      return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+    }).join('');
+  }
   document.getElementById('implementModal').style.display='flex';
 }
 function closeImplement(){
