@@ -5407,7 +5407,10 @@ function closePriceReview(){
       <h3 id="implementTitle">Implement Campaign</h3>
       <button class="modal-close" onclick="closeImplement()">Close</button>
     </div>
-    <div style="color:var(--muted);font-size:.85rem">Review all price changes before applying.</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:6px 0 10px">
+      <div style="color:var(--muted);font-size:.85rem">Uncheck items you do NOT want to change.</div>
+      <div style="font-weight:800">Total uplift: <span id="implementTotal">$0</span></div>
+    </div>
     <div class="modal-list" id="implementList"></div>
     <div class="modal-actions">
       <button class="modal-close secondary" onclick="closeImplement()">Cancel</button>
@@ -5417,6 +5420,20 @@ function closePriceReview(){
 </div>
 
 <script>
+function parseMoney(v){
+  if(!v) return 0; const n=parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)?0:n;
+}
+function updateImplementTotal(){
+  const totalEl=document.getElementById('implementTotal');
+  const items=document.querySelectorAll('#implementList .modal-item');
+  let total=0;
+  items.forEach(i=>{
+    const cb=i.querySelector('input[type="checkbox"]');
+    const uplift=parseMoney(i.getAttribute('data-uplift'));
+    if(cb && cb.checked) total+=uplift;
+  });
+  if(totalEl) totalEl.textContent = total ? ('$' + total.toLocaleString()) : '$0';
+}
 function openCampaignImplement(type){
   const list = document.getElementById('implementList');
   const title = document.getElementById('implementTitle');
@@ -5434,21 +5451,25 @@ function openCampaignImplement(type){
         const name = tds[1] || tds[0];
         const current = tds[5] || '';
         const suggested = tds[6] || '';
-        return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+        const uplift = tds[9] || '';
+        return `<div class="modal-item" data-uplift="${uplift}"><label><input type="checkbox" checked onchange="updateImplementTotal()"/> ${name}</label><span>${current} → <b>${suggested}</b></span></div>`;
       }
       if (type==='99-pricing') {
         const name = tds[0] || '';
         const current = tds[2] || '';
         const suggested = tds[3] || '';
-        return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+        const uplift = tds[6] || '';
+        return `<div class="modal-item" data-uplift="${uplift}"><label><input type="checkbox" checked onchange="updateImplementTotal()"/> ${name}</label><span>${current} → <b>${suggested}</b></span></div>`;
       }
       // micro-margin
       const name = tds[0] || '';
       const current = (tds[1]||'').replace(/\s+/g,' ');
       const suggested = (tds[2]||'').replace(/\s+/g,' ');
-      return `<div class="modal-item"><span>${name}</span><span>${current} → <b>${suggested}</b></span></div>`;
+      const uplift = tds[4] || '';
+      return `<div class="modal-item" data-uplift="${uplift}"><label><input type="checkbox" checked onchange="updateImplementTotal()"/> ${name}</label><span>${current} → <b>${suggested}</b></span></div>`;
     }).join('');
   }
+  updateImplementTotal();
   document.getElementById('implementModal').style.display='flex';
 }
 function closeImplement(){
