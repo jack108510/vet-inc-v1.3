@@ -1031,7 +1031,7 @@
 .campaign-btn{background:#2563eb;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:.8rem;font-weight:700;}
 
 </style></head><body>
-<div id="loginGate" style="position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;">
+<div id="loginGate" style="position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;pointer-events:auto;">
   <div style="background:#111827;padding:24px;border-radius:14px;min-width:320px">
     <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">Vet INC Login</div>
     <input id="loginEmail" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
@@ -5347,9 +5347,9 @@ const supa = supabase.createClient(SUPA_URL, SUPA_ANON);
 function showLogin(){
   const gate = document.createElement('div');
   gate.id='loginGate';
-  gate.style.cssText='position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;';
+  gate.style.cssText='position:fixed;inset:0;background:#0f172a;display:flex;align-items:center;justify-content:center;z-index:9999;color:#fff;pointer-events:auto;';
   gate.innerHTML = `
-    <div style="background:#111827;padding:24px;border-radius:14px;min-width:320px">
+    <div style="background:#111827;padding:24px;border-radius:14px;min-width:320px;pointer-events:auto">
       <div style="font-size:1.1rem;font-weight:800;margin-bottom:8px">Vet INC Login</div>
       <input id="loginEmail" placeholder="Email" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
       <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px;margin:6px 0;border-radius:8px;border:1px solid #334155;background:#0b1220;color:#fff" />
